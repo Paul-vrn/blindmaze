@@ -1,22 +1,50 @@
 import 'phaser';
+import {Cell} from '../models/cell';
+import {Wall} from '../models/wall';
 
 const CELL_SIZE = 40;
 const WALL_THICKNESS = 1;
 
+interface ICoordinates {
+  x: number;
+  y: number;
+}
+
+interface IWallCoordinates extends ICoordinates {
+  width: number;
+  height: number;
+}
+
+interface ICell {
+  row: number;
+  col: number;
+}
+
 export class GridView {
-  constructor(scene, grid, x, y) {
+  scene: any;
+  grid: any;
+  gridX: number;
+  gridY: number;
+  container: any;
+  gridWidth!: number;
+  gridHeight!: number;
+  startX!: number;
+  startY!: number;
+  cellViews!: Record<string, any>;
+  wallViews!: Record<string, any>;
+  outlineViews!: any[];
+
+  constructor(scene: any, grid: any, x: number, y: number) {
     this.scene = scene;
     this.grid = grid;
-
     this.gridX = x;
     this.gridY = y;
-
     this.refresh();
   }
 
-  refresh() {
+  refresh(): void {
     if (this.container) {
-      this.container.each(child => child.destroy());
+      this.container.each((child: any) => child.destroy());
       this.container.destroy();
     }
 
@@ -34,12 +62,12 @@ export class GridView {
     this.container = this.scene.add.container(centerX, centerY, [...Object.values(this.cellViews), ...Object.values(this.wallViews), ...this.outlineViews]);
   }
 
-  reset() {
+  reset(): void {
     Object.values(this.wallViews).forEach(wallView => wallView.alpha = 1);
     this.scene.tweens.killAll();
   }
 
-  destroyWall(wall) {
+  destroyWall(wall: Wall): void {
     const wallView = this.wallViews[`${wall.cell1.row}${wall.cell1.col},${wall.cell2.row}${wall.cell2.col}`];
     this.scene.tweens.add({
       targets: wallView,
@@ -53,10 +81,10 @@ export class GridView {
     });
   }
 
-  _buildCellViews() {
-    const cellViews = {};
+  public _buildCellViews(): Record<string, any> {
+    const cellViews: { [key: string]: Phaser.GameObjects.Rectangle } = {};
 
-    this.grid.forEachCell(cell => {
+    this.grid.forEachCell((cell: Cell) => {
       const { x, y } = this._getCellCoordinates(cell);
 
       const cellView = this.scene.add.rectangle(x, y, CELL_SIZE, CELL_SIZE, 0xFFFFFF);
@@ -66,10 +94,10 @@ export class GridView {
     return cellViews;
   }
 
-  _buildWallViews() {
-    const wallViews = {};
+  public _buildWallViews(): Record<string, any> {
+    const wallViews: { [key: string]: Phaser.GameObjects.Rectangle } = {};
 
-    this.grid.forEachWall(wall => {
+    this.grid.forEachWall((wall: any) => {
       const { x, y, width, height } = this._getWallCoordinates(wall);
 
       const wallView = this.scene.add.rectangle(x, y, width, height, 0x000000);
@@ -82,7 +110,7 @@ export class GridView {
     return wallViews;
   }
 
-  _buildOutlineViews() {
+  public _buildOutlineViews(): any[] {
     const outlineViews = [
       this.scene.add.rectangle(this.gridWidth / 2, 0, this.gridWidth, WALL_THICKNESS, 0x000000), // top
       this.scene.add.rectangle(this.gridWidth / 2, this.gridHeight, this.gridWidth, WALL_THICKNESS, 0x000000), // bottom
@@ -93,14 +121,14 @@ export class GridView {
     return outlineViews;
   }
 
-  _getCellCoordinates(cell) {
+  public _getCellCoordinates(cell: ICell): ICoordinates {
     return {
       x: (cell.col * CELL_SIZE) + /*((cell.col + 1) * WALL_THICKNESS)*/ + CELL_SIZE / 2,
       y: (cell.row * CELL_SIZE) + /*((cell.row + 1) * WALL_THICKNESS)*/ + CELL_SIZE / 2,
     }
   }
 
-  _getWallCoordinates(wall) {
+  public _getWallCoordinates(wall: Wall): IWallCoordinates {
     const cell1Coordinates = this._getCellCoordinates(wall.cell1);
     const cell2Coordinates = this._getCellCoordinates(wall.cell2);
 

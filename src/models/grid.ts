@@ -1,16 +1,33 @@
 import {Cell} from './cell';
 import {Wall} from './wall';
 
+interface ISize {
+  rows: number;
+  cols: number;
+}
+
+interface INeighbors {
+  above: Cell | null;
+  below: Cell | null;
+  left: Cell | null;
+  right: Cell | null;
+}
+
 export class Grid {
-  constructor(rows, cols) {
+  private rows!: number;
+  private cols!: number;
+  private cells!: Cell[][];
+  private walls!: Set<Wall>;
+
+  constructor(rows: number, cols: number) {
     this.setSize(rows, cols);
   }
 
-  setSize(rows, cols) {
+  setSize(rows: number, cols: number): void {
     this.rows = rows;
     this.cols = cols;
     this.cells = [];
-    this.walls = new Set()
+    this.walls = new Set<Wall>();
 
     // create cells
     for (let row = 0; row < rows; row++) {
@@ -19,20 +36,10 @@ export class Grid {
         this.cells[row][col] = new Cell(row, col);
       }
     }
-    
-    // create walls
-    this.forEachCell(cell => {
-      const aboveIndex = cell.row - 1;
-      const belowIndex = cell.row + 1;
-      const leftIndex = cell.col - 1;
-      const rightIndex = cell.col + 1;
 
-      const neighbors = {
-        above: aboveIndex >= 0 ? this.cells[aboveIndex][cell.col] : null,
-        below: belowIndex < rows ? this.cells[belowIndex][cell.col] : null,
-        left: leftIndex >= 0 ? this.cells[cell.row][leftIndex] : null,
-        right: rightIndex < cols ? this.cells[cell.row][rightIndex] : null,
-      };
+    // create walls
+    this.forEachCell((cell: Cell) => {
+      const neighbors: INeighbors = this.getNeighbors(cell);
 
       if (neighbors.above) {
         const wall = neighbors.above.walls.below || new Wall(neighbors.above, cell);
@@ -40,7 +47,6 @@ export class Grid {
         cell.walls.above = wall;
         this.walls.add(wall);
       }
-
       if (neighbors.below) {
         const wall = neighbors.below.walls.above || new Wall(neighbors.below, cell);
         neighbors.below.walls.above = wall;
@@ -64,11 +70,11 @@ export class Grid {
     });
   }
 
-  getSize() {
+  getSize(): ISize {
     return { rows: this.rows, cols: this.cols };
   }
-  
-  getNeighbors(cell) {
+
+  getNeighbors(cell: Cell): INeighbors {
     const aboveIndex = cell.row - 1;
     const belowIndex = cell.row + 1;
     const leftIndex = cell.col - 1;
@@ -82,19 +88,19 @@ export class Grid {
     };
   }
 
-  get(row, col) {
+  get(row: number, col: number): Cell {
     return this.cells[row][col];
   }
 
-  someCell(fn) {
+  someCell(fn: (cell: Cell) => boolean): boolean {
     return this.cells.some(row => row.some(fn));
   }
 
-  forEachCell(fn) {
-    return this.cells.forEach(row => row.forEach(fn));
+  forEachCell(fn: (cell: Cell) => void): void {
+    this.cells.forEach(row => row.forEach(fn));
   }
 
-  forEachWall(fn) {
-    return this.walls.forEach(fn);
+  forEachWall(fn: (wall: Wall) => void): void {
+    this.walls.forEach(fn);
   }
 }

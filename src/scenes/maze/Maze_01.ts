@@ -6,14 +6,14 @@ import {Cell} from '../../models/cell';
 import {Grid} from '../../models/grid';
 
 export default class Maze01 extends Phaser.Scene {
-  private gridView: any;
+  private gridView!: GridView;
   private scheduler: any;
   private destroyedWallCount: any;
   private generators: any;
   private activeGeneratorIndex: any;
   private currentAlgoText: any;
   private lightPoint: any;
-  private grid: Grid | undefined;
+  private grid!: Grid;
   private lightPointTarget: any;
   constructor() {
     super('Maze01');
@@ -148,21 +148,21 @@ export default class Maze01 extends Phaser.Scene {
     if (cell1.row == cell2.row) {
       if (cell2.col < cell1.col) { // left
         this.scheduler.delayedCall(TIME_STEP * this.destroyedWallCount, () => {
-          this.gridView.destroyWall(cell1.walls.left);
+          this.gridView.destroyWall(cell1.walls.left!);
         });
       } else { // right
         this.scheduler.delayedCall(TIME_STEP * this.destroyedWallCount, () => {
-          this.gridView.destroyWall(cell1.walls.right);
+          this.gridView.destroyWall(cell1.walls.right!);
         });
       }
     } else {
       if (cell2.row < cell1.row) { // above
         this.scheduler.delayedCall(TIME_STEP * this.destroyedWallCount, () => {
-          this.gridView.destroyWall(cell1.walls.above);
+          this.gridView.destroyWall(cell1.walls.above!);
         });
       } else { // below
         this.scheduler.delayedCall(TIME_STEP * this.destroyedWallCount, () => {
-          this.gridView.destroyWall(cell1.walls.below);
+          this.gridView.destroyWall(cell1.walls.below!);
         });
       }
     }
