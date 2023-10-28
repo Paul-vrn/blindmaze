@@ -15,11 +15,6 @@ interface IWallCoordinates extends ICoordinates {
   height: number;
 }
 
-interface ICell {
-  row: number;
-  col: number;
-}
-
 export class GridView {
   scene: any;
   grid: any;
@@ -60,7 +55,10 @@ export class GridView {
   }
 
   reset(): void {
-    Object.values(this.wallViews).forEach(wallView => wallView.alpha = 1);
+    Object.values(this.wallViews).forEach(wallView => {
+      wallView.alpha = 1;
+      wallView.body.enable = true;
+    });
     this.scene.tweens.killAll();
   }
 
@@ -122,7 +120,7 @@ export class GridView {
     return outlineViews;
   }
 
-  public _getCellCoordinates(cell: ICell): ICoordinates {
+  public _getCellCoordinates(cell: Cell): ICoordinates {
     return {
       x: (cell.col * CELL_SIZE) + /*((cell.col + 1) * WALL_THICKNESS)*/ + CELL_SIZE / 2,
       y: (cell.row * CELL_SIZE) + /*((cell.row + 1) * WALL_THICKNESS)*/ + CELL_SIZE / 2,
@@ -149,4 +147,5 @@ export class GridView {
       return { x, y, width, height };
     }
   }
+  
 }

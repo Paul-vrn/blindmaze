@@ -3,6 +3,7 @@ import {Wall} from "./wall";
 export class Cell {
   row: number;
   col: number;
+  visited?: boolean;
   walls: {
     above?: Wall;
     below?: Wall;

@@ -14,10 +14,10 @@ interface INeighbors {
 }
 
 export class Grid {
-  private rows!: number;
-  private cols!: number;
-  private cells!: Cell[][];
-  private walls!: Set<Wall>;
+  rows!: number;
+  cols!: number;
+  cells!: Cell[][];
+  walls!: Set<Wall>;
 
   constructor(rows: number, cols: number) {
     this.setSize(rows, cols);
