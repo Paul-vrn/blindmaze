@@ -3,7 +3,7 @@ import {Cell} from '../models/cell';
 import {Wall} from '../models/wall';
 
 const CELL_SIZE = 40;
-const WALL_THICKNESS = 1;
+const WALL_THICKNESS = 5;
 
 interface ICoordinates {
   x: number;
@@ -25,7 +25,7 @@ export class GridView {
   grid: any;
   gridX: number;
   gridY: number;
-  container: any;
+  container!: Phaser.GameObjects.Container;
   gridWidth!: number;
   gridHeight!: number;
   startX!: number;
@@ -50,16 +50,13 @@ export class GridView {
 
     this.gridWidth = (this.grid.cols * CELL_SIZE) /*+ ((this.grid.cols + 1) * WALL_THICKNESS)*/;
     this.gridHeight = (this.grid.rows * CELL_SIZE) /*+ ((this.grid.rows + 1) * WALL_THICKNESS)*/;
-    const centerX = this.gridX - this.gridWidth / 2;
-    const centerY = this.gridY - this.gridHeight / 2;
-    this.startX = centerX;
-    this.startY = centerY;
-    console.log(centerX, centerY);
+    this.startX = this.gridX - this.gridWidth / 2;;
+    this.startY = this.gridY - this.gridHeight / 2;
     this.cellViews = this._buildCellViews(); // key: `${row}${col}`
     this.wallViews = this._buildWallViews(); // key: `${cell1.row}${cell1.col},${cell2.row}${cell2.col}`
     this.outlineViews = this._buildOutlineViews(); // []
 
-    this.container = this.scene.add.container(centerX, centerY, [...Object.values(this.cellViews), ...Object.values(this.wallViews), ...this.outlineViews]);
+    this.container = this.scene.add.container(this.startX, this.startY, [...Object.values(this.cellViews), ...Object.values(this.wallViews), ...this.outlineViews]);
   }
 
   reset(): void {
@@ -112,11 +109,15 @@ export class GridView {
 
   public _buildOutlineViews(): any[] {
     const outlineViews = [
-      this.scene.add.rectangle(this.gridWidth / 2, 0, this.gridWidth, WALL_THICKNESS, 0x000000), // top
-      this.scene.add.rectangle(this.gridWidth / 2, this.gridHeight, this.gridWidth, WALL_THICKNESS, 0x000000), // bottom
-      this.scene.add.rectangle(0, this.gridHeight / 2, WALL_THICKNESS, this.gridHeight, 0x000000), // left
-      this.scene.add.rectangle(this.gridWidth, this.gridHeight / 2, WALL_THICKNESS, this.gridHeight, 0x000000), // right
+      this.scene.add.rectangle(this.gridWidth / 2, 0, this.gridWidth + WALL_THICKNESS, WALL_THICKNESS, 0x000000), // top
+      this.scene.add.rectangle(this.gridWidth / 2, this.gridHeight, this.gridWidth + WALL_THICKNESS, WALL_THICKNESS, 0x000000), // bottom
+      this.scene.add.rectangle(0, this.gridHeight / 2, WALL_THICKNESS, this.gridHeight + WALL_THICKNESS, 0x000000), // left
+      this.scene.add.rectangle(this.gridWidth, this.gridHeight / 2, WALL_THICKNESS, this.gridHeight + WALL_THICKNESS, 0x000000), // right
     ];
+    outlineViews.forEach(outlineView => {
+      this.scene.physics.world.enable(outlineView);
+      outlineView.body.immovable = true;
+    });
 
     return outlineViews;
   }

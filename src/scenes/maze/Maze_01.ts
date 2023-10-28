@@ -1,4 +1,5 @@
 import 'phaser';
+import config from '../../config';
 import {GridView} from '../../entities/grid-view';
 import {RandomizedKruskal} from '../../generators/randomized-kruskal';
 import {RecursiveBacktracker} from '../../generators/recursive-backtracker';
@@ -15,21 +16,26 @@ export default class Maze01 extends Phaser.Scene {
   private lightPoint: any;
   private grid!: Grid;
   private lightPointTarget: any;
+  private graphics!: Phaser.GameObjects.Graphics;
   constructor() {
     super('Maze01');
 
   }
 
+  preload() {
+    this.load.image('logo', 'assets/light.png');
+  }
   create() {
     this.cameras.main.setBackgroundColor(0xcacaca);
-
+    //this.lightPoint = this.add.image(0, 0, 'logo');
     this.lightPoint = this.add.circle(0, 0, 5, 0xffd700); // Crée un point lumineux jaune
     this.lightPoint.setVisible(false); // Cache le point jusqu'à ce qu'il soit positionné
     this.physics.world.enable(this.lightPoint);
     this.lightPoint.setInteractive();
-    
     this.lightPoint.on('pointerover', () => {
       this.input.on('pointermove', this._moveLightToPoint, this);
+      this.gridView.container.setMask(mask);
+      this.lightPoint.setMask(mask);
     });
 
     this.scheduler = new Phaser.Time.Clock(this);
@@ -41,8 +47,8 @@ export default class Maze01 extends Phaser.Scene {
     const cols = 8;
 
     this.grid = new Grid(rows, cols);
-    //this.gridView = new GridView(this, this.grid, config.scale.width / 2, config.scale.height / 2);
-    this.gridView = new GridView(this, this.grid, 250, 250);
+    this.gridView = new GridView(this, this.grid, config.scale.width / 2, config.scale.height / 2);
+    //this.gridView = new GridView(this, this.grid, 250, 250);
     this.gridView.container.add(this.lightPoint);
     this.generators = [
       {
@@ -91,19 +97,25 @@ export default class Maze01 extends Phaser.Scene {
     this._updateActiveGeneratorName();
 
     this._placeLightInRandomCell();
+
+    this.graphics = this.make.graphics({ lineStyle: { color: 0x0000FF, width: 0.5 } });
+    let mask = new Phaser.Display.Masks.GeometryMask(this, this.graphics);
     
     // COLLISION
     for (let key in this.gridView.wallViews) {
       if (this.gridView.wallViews.hasOwnProperty(key)) {
-          this.physics.add.collider(this.lightPoint, this.gridView.wallViews[key], () => {
-            console.log('collide');
-          });
+          this.physics.add.collider(this.lightPoint, this.gridView.wallViews[key]);
       }
-  }
+    }
+    this.gridView.outlineViews.forEach((outlineView: any) => {
+      this.physics.add.collider(this.lightPoint, outlineView);
+    });
+
     // END OF CREATE
   }
 
   update(time: number, delta: number): void {
+
     if (this.lightPointTarget) {
       let dx = this.lightPointTarget.x - this.lightPoint.x;
       let dy = this.lightPointTarget.y - this.lightPoint.y;
@@ -114,8 +126,15 @@ export default class Maze01 extends Phaser.Scene {
         this.lightPoint.body.velocity.y = 0;
               this.lightPointTarget = null;  // Réinitialisez la cible
       }
+    }
+    console.log('this.lightPoint.x', this.lightPoint.x, 'this.lightPoint.y', this.lightPoint.y);
+    this.graphics
+    .clear()
+    .fillStyle(0x000000)
+    .fillCircle(this.lightPoint.x+ this.gridView.startX, this.lightPoint.y+ this.gridView.startY, 70);
+
   }
-  }
+
   _reset() {
     this.destroyedWallCount = 0;
     this.scheduler.removeAllEvents();
@@ -179,25 +198,18 @@ export default class Maze01 extends Phaser.Scene {
   }
 
 
-  _moveLightToPoint(pointer: any) {
-    let targetX = Phaser.Math.Clamp(pointer.x, this.gridView.startX, this.gridView.startX + this.gridView.gridWidth) - 90;
-    let targetY = Phaser.Math.Clamp(pointer.y, this.gridView.startY, this.gridView.startY + this.gridView.gridHeight) - 150;
-    
-    let dx = targetX - this.lightPoint.x;
-    let dy = targetY - this.lightPoint.y;
+  _moveLightToPoint(pointer: Phaser.Input.InputPlugin) {
+    let targetX = Phaser.Math.Clamp(pointer.x, this.gridView.startX, this.gridView.startX + this.gridView.gridWidth) - this.gridView.startX;
+    let targetY = Phaser.Math.Clamp(pointer.y, this.gridView.startY, this.gridView.startY + this.gridView.gridHeight) - this.gridView.startY;
+    let dx = pointer.x - this.gridView.startX - this.lightPoint.x;
+    let dy = pointer.y - this.gridView.startY - this.lightPoint.y;
     let distance = Math.sqrt(dx * dx + dy * dy);
-    let speed = distance / 1;  // Par exemple, atteindre la destination en 1 seconde
+
+    let speed = Math.log(distance+1) * 30;  // using log to slow down the speed when the light is far away
+
     this.lightPointTarget = { x: targetX, y: targetY };  // Stockez la cible
 
     this.physics.moveTo(this.lightPoint, targetX, targetY, speed);
-    
 
-    /*    this.lightPoint.tweens = this.tweens.add({
-        targets: this.lightPoint,
-        x: targetX,
-        y: targetY,
-        duration: 1000,
-        ease: 'Sine.easeOut',
-    });*/
   }
 }
