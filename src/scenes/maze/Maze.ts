@@ -1,25 +1,26 @@
 import 'phaser';
 import config from '../../config';
 import {GridView} from '../../entities/grid-view';
-import {RandomizedKruskal} from '../../generators/randomized-kruskal';
 import {RecursiveBacktracker} from '../../generators/recursive-backtracker';
 import {Cell} from '../../models/cell';
 import {Grid} from '../../models/grid';
+import calculateSpeed from '../../utils/calculateSpeed';
+import {createTimer} from '../../utils/timer';
 
 export default class Maze extends Phaser.Scene {
   private rows: number;
   private cols: number;
   private gridView!: GridView;
-  private scheduler: any;
-  private destroyedWallCount: any;
-  private generators: any;
-  private activeGeneratorIndex: any;
-  private currentAlgoText: any;
-  private lightPoint: any;
+  private scheduler!: any;
+  private destroyedWallCount!: number;
+  private lightPoint!: Phaser.GameObjects.Arc;
+  private points!: Phaser.GameObjects.Arc[];
   private grid!: Grid;
-  private lightPointTarget: any;
+  private lightPointTarget!: { x: number; y: number; } | null;
   private graphics!: Phaser.GameObjects.Graphics;
-  
+  private generator!: RecursiveBacktracker
+  timerText!: Phaser.GameObjects.Text;
+  elapsedTime = 0;
   constructor(name: string, rows = 5, cols = 8) {
     super(name);
     this.rows = rows;
@@ -27,8 +28,10 @@ export default class Maze extends Phaser.Scene {
   }
 
   create() {
+
+    createTimer(this)
+
     this.cameras.main.setBackgroundColor(0xcacaca);
-    //this.lightPoint = this.add.image(0, 0, 'logo');
     this.lightPoint = this.add.circle(0, 0, 5, 0xffd700); // Crée un point lumineux jaune
     this.lightPoint.setVisible(false); // Cache le point jusqu'à ce qu'il soit positionné
     this.physics.world.enable(this.lightPoint);
@@ -38,7 +41,6 @@ export default class Maze extends Phaser.Scene {
       this.gridView.container.setMask(mask);
       this.lightPoint.setMask(mask);
     });
-
     this.scheduler = new Phaser.Time.Clock(this);
     this.scheduler.start();
 
@@ -46,35 +48,15 @@ export default class Maze extends Phaser.Scene {
 
     this.grid = new Grid(this.rows, this.cols);
     this.gridView = new GridView(this, this.grid, config.scale.width / 2, config.scale.height / 2);
+    this.generator = new RecursiveBacktracker(this, this.grid, this.gridView);
     //this.gridView = new GridView(this, this.grid, 250, 250);
     this.gridView.container.add(this.lightPoint);
-    this.generators = [
-      {
-        name: 'Recursive Backtracer',
-        generator: new RecursiveBacktracker(this, this.grid, this.gridView),
-      },
-      {
-        name: 'Randomized Kruskal',
-        generator: new RandomizedKruskal(this, this.grid, this.gridView),
-      },
-    ];
-    this.activeGeneratorIndex = 0;
-
-    this.add.text(25, 450, 'switch algo')
-      .setInteractive()
-      .on('pointerdown', () => {
-        this.activeGeneratorIndex = Phaser.Math.Wrap(this.activeGeneratorIndex + 1, 0, this.generators.length);
-
-        this._updateActiveGeneratorName();
-      });
-    this.currentAlgoText = this.add.text(25, 470, '');
 
     this.add.text(175, 450, 'generate')
       .setInteractive()
       .on('pointerdown', () => {
         this._reset();
-
-        this._getActiveGenerator().generator.generate();
+        this.generator.generate();
       });
 
     this.add.text(300, 450, 'reset')
@@ -91,8 +73,6 @@ export default class Maze extends Phaser.Scene {
         this.grid?.setSize(rows, cols);
         this.gridView.refresh();
       });
-
-    this._updateActiveGeneratorName();
 
     this._placeLightInRandomCell();
 
@@ -125,7 +105,6 @@ export default class Maze extends Phaser.Scene {
               this.lightPointTarget = null;  // Réinitialisez la cible
       }
     }
-    console.log('this.lightPoint.x', this.lightPoint.x, 'this.lightPoint.y', this.lightPoint.y);
     this.graphics
     .clear()
     .fillStyle(0x000000)
@@ -137,9 +116,8 @@ export default class Maze extends Phaser.Scene {
     this.destroyedWallCount = 0;
     this.scheduler.removeAllEvents();
 
-    const generator = this._getActiveGenerator().generator;
 
-    generator.reset();
+    this.generator.reset();
     this.gridView.reset();
   }
 
@@ -187,15 +165,6 @@ export default class Maze extends Phaser.Scene {
     this.destroyedWallCount += 1;
   }
 
-  _getActiveGenerator() {
-    return this.generators[this.activeGeneratorIndex];
-  }
-
-  _updateActiveGeneratorName() {
-    this.currentAlgoText.text = `algo: ${this._getActiveGenerator().name}`;
-  }
-
-
   _moveLightToPoint(pointer: Phaser.Input.InputPlugin) {
     let targetX = Phaser.Math.Clamp(pointer.x, this.gridView.startX, this.gridView.startX + this.gridView.gridWidth) - this.gridView.startX;
     let targetY = Phaser.Math.Clamp(pointer.y, this.gridView.startY, this.gridView.startY + this.gridView.gridHeight) - this.gridView.startY;
@@ -203,8 +172,10 @@ export default class Maze extends Phaser.Scene {
     let dy = pointer.y - this.gridView.startY - this.lightPoint.y;
     let distance = Math.sqrt(dx * dx + dy * dy);
 
-    let speed = Math.log(distance+1) * 30;  // using log to slow down the speed when the light is far away
+    //let speed = Math.log(distance+1) * 20;  // using log to slow down the speed when the light is far away
 
+    //let speed = (distance < 200) ? distance/2 : 200/2 + Math.log(distance+1 *2) * 20;
+    let speed = calculateSpeed(distance);
     this.lightPointTarget = { x: targetX, y: targetY };  // Stockez la cible
 
     this.physics.moveTo(this.lightPoint, targetX, targetY, speed);
