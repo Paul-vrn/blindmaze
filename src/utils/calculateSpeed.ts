@@ -1,6 +1,11 @@
 const cacheSpeed = new Map<number, number>();
-const easingFactor = 0.5;
 const maxSpeed = 200;
+
+/**
+ * Calculate the speed of the light point based on the distance to the target
+ * @param distance
+ * @returns 
+ */
 const calculateSpeed = (distance: number): number => {
   distance = Math.trunc(distance);
   if (cacheSpeed.has(distance)) {

@@ -5,52 +5,50 @@ import {RecursiveBacktracker} from '../../generators/recursive-backtracker';
 import {Cell} from '../../models/cell';
 import {Grid} from '../../models/grid';
 import calculateSpeed from '../../utils/calculateSpeed';
-import {createTimer} from '../../utils/timer';
+import {formatTime} from '../../utils/timer';
 
 export default class Maze extends Phaser.Scene {
   private rows: number;
   private cols: number;
   private gridView!: GridView;
   private scheduler!: any;
-  private destroyedWallCount!: number;
+  private destroyedWallCount: number;
   private lightPoint!: Phaser.GameObjects.Arc;
-  private points!: Phaser.GameObjects.Arc[];
+  private points: Phaser.GameObjects.Arc[];
+  private nbPoints: number;
+  private currentNbPoints: number;
   private grid!: Grid;
   private lightPointTarget!: { x: number; y: number; } | null;
   private graphics!: Phaser.GameObjects.Graphics;
   private generator!: RecursiveBacktracker
+  private mask!: Phaser.Display.Masks.GeometryMask;
   timerText!: Phaser.GameObjects.Text;
-  elapsedTime = 0;
-  constructor(name: string, rows = 5, cols = 8) {
+  elapsedTime: number = 0;
+  private topText: Phaser.GameObjects.Text | null = null;
+  constructor(name: string, rows = 5, cols = 8, nbPoints = 3) {
     super(name);
     this.rows = rows;
     this.cols = cols;
+    this.nbPoints = nbPoints;
+    this.currentNbPoints = nbPoints;
+    this.points = []
+    this.destroyedWallCount = 0;
   }
 
   create() {
-
-    createTimer(this)
-
+    this.currentNbPoints = this.nbPoints;
     this.cameras.main.setBackgroundColor(0xcacaca);
-    this.lightPoint = this.add.circle(0, 0, 5, 0xffd700); // Crée un point lumineux jaune
-    this.lightPoint.setVisible(false); // Cache le point jusqu'à ce qu'il soit positionné
-    this.physics.world.enable(this.lightPoint);
-    this.lightPoint.setInteractive();
-    this.lightPoint.on('pointerover', () => {
-      this.input.on('pointermove', this._moveLightToPoint, this);
-      this.gridView.container.setMask(mask);
-      this.lightPoint.setMask(mask);
-    });
+    
     this.scheduler = new Phaser.Time.Clock(this);
     this.scheduler.start();
 
-    this.destroyedWallCount = 0;
-
+    this.graphics = this.make.graphics({ lineStyle: { color: 0x0000FF, width: 0.5 } });
+    this.mask = new Phaser.Display.Masks.GeometryMask(this, this.graphics);
+    
     this.grid = new Grid(this.rows, this.cols);
     this.gridView = new GridView(this, this.grid, config.scale.width / 2, config.scale.height / 2);
     this.generator = new RecursiveBacktracker(this, this.grid, this.gridView);
     //this.gridView = new GridView(this, this.grid, 250, 250);
-    this.gridView.container.add(this.lightPoint);
 
     this.add.text(175, 450, 'generate')
       .setInteractive()
@@ -73,11 +71,14 @@ export default class Maze extends Phaser.Scene {
         this.grid?.setSize(rows, cols);
         this.gridView.refresh();
       });
+    
+    this.createLightPoint();
+    this.createPoints();
 
-    this._placeLightInRandomCell();
+    // Placing light point and points
+    this.placePointInRandomCell(this.lightPoint);
+    this.points.forEach((point: Phaser.GameObjects.Arc) => this.placePointInRandomCell(point));
 
-    this.graphics = this.make.graphics({ lineStyle: { color: 0x0000FF, width: 0.5 } });
-    let mask = new Phaser.Display.Masks.GeometryMask(this, this.graphics);
     
     // COLLISION
     for (let key in this.gridView.wallViews) {
@@ -89,7 +90,126 @@ export default class Maze extends Phaser.Scene {
       this.physics.add.collider(this.lightPoint, outlineView);
     });
 
+    this._reset();
+    this.generator.generate();
+    this.countDown();
     // END OF CREATE
+  }
+
+  countDown() {
+    let countdown = 5;
+    let countdownText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, String(countdown), {
+      font: '412px Arial',
+      color: '#000000'
+    }).setOrigin(0.5, 0.5).setAlpha(0.3);
+  
+    this.time.addEvent({
+      delay: 1000,
+      repeat: 5,
+      callback: () => {
+        countdown--;
+        countdownText.setText(countdown.toString());
+        if (countdown === 0) {
+          countdownText.setText('Go !');
+        } else if (countdown === -1) {
+          countdownText.destroy();
+        }
+      },
+      callbackScope: this
+    });
+  
+    this.time.delayedCall(6000, () => {
+      this.startGame();
+    });
+  }
+
+  startGame() {
+    this.input.on('pointermove', this.moveLightToPoint, this);
+    this.gridView.container.setMask(this.mask);
+    this.lightPoint.setMask(this.mask);
+    this.points.forEach((point: Phaser.GameObjects.Arc) => point.setMask(this.mask));
+
+    this.time.addEvent({
+      //delay: 20000, // 20 seconds
+      delay: 20000,
+      callback: this.showPointsBriefly,
+      callbackScope: this,
+      loop: true
+    });
+  }
+  createLightPoint() {
+    this.lightPoint = this.add.circle(0, 0, 5, 0xffd700); // Crée un point lumineux jaune
+    this.lightPoint.setVisible(false); // Cache le point jusqu'à ce qu'il soit positionné
+    this.physics.world.enable(this.lightPoint);
+    this.lightPoint.setInteractive();
+    this.gridView.container.add(this.lightPoint);
+
+  }
+  createPoints() {
+    for(let i = 0; i < this.currentNbPoints; i++){
+      const point = this.add.circle(0, 0, 5, 0x87F090);
+      point.setVisible(true);
+      this.physics.world.enable(point);
+      point.setInteractive();
+      this.gridView.container.add(point);
+      // collide point and lightpoint
+      this.physics.add.collider(this.lightPoint, point, () => {
+        point.setVisible(false);
+        this.physics.world.disable(point);
+        this.currentNbPoints--;
+        this.checkGameOver();
+      });
+      this.points.push(point);
+    }
+  }
+  
+  checkGameOver() {
+    if (this.currentNbPoints === 0) {
+      this.showGameFinished();
+    }
+  }
+
+  private showGameFinished() {
+    // Stop any active game mechanics
+    this.scheduler.removeAllEvents();
+    this.lightPoint.body.velocity.x = 0;
+    this.lightPoint.body.velocity.y = 0;
+    this.lightPoint.setInteractive(false);
+    this.input.off('pointermove', this.moveLightToPoint, this);
+    this.gridView.container.clearMask();
+    this.lightPoint.clearMask();
+    this.points.forEach((point: Phaser.GameObjects.Arc) => point.clearMask());
+    if (this.topText) {
+      this.topText.setText(`Game Finished!\nTime: ${formatTime(this.elapsedTime)}`);
+    } else {
+      this.topText = this.add.text(config.scale.width/2, 50, `Game Finished!\nTime: ${formatTime(this.elapsedTime)}`, {
+        align: 'center',
+        fontSize: '40px',
+        color: '#000'
+      }).setOrigin(0.5, 0.5); // Align text to the top left of the game grid
+    }
+    this.time.delayedCall(5000, () => {
+      this.scene.start('MainMenuScene');  // replace 'MainScene' with the key of your main scene
+  });
+  }
+  private showPointsLeft() {
+    // If the text already exists, just update it.
+    if (this.topText) {
+      this.topText.setText(`${this.nbPoints} points left to find`);
+    } else {
+      // Create the text if it does not exist.
+      this.topText = this.add.text(this.gridView.startX, 10, `${this.nbPoints} points left to find`, {
+        align: 'left',
+        fontSize: '20px',
+        color: '#000'
+      }).setOrigin(0, 0); // Align text to the top left of the game grid
+    }
+    this.time.delayedCall(3000, () => {
+      if (this.topText) {
+        this.topText.destroy();
+        this.topText = null;
+      }
+    });
   }
 
   update(time: number, delta: number): void {
@@ -115,30 +235,26 @@ export default class Maze extends Phaser.Scene {
   _reset() {
     this.destroyedWallCount = 0;
     this.scheduler.removeAllEvents();
-
-
     this.generator.reset();
     this.gridView.reset();
   }
 
-  _placeLightInRandomCell() {
+  placePointInRandomCell(point: Phaser.GameObjects.Arc) {
     const randomRow = Phaser.Math.RND.between(0, this.gridView.grid.rows - 1);
     const randomCol = Phaser.Math.RND.between(0, this.gridView.grid.cols - 1);
     const randomCell = this.grid?.get(randomRow, randomCol);
 
     if (randomCell) {
       const position = this.gridView._getCellCoordinates(randomCell);
-      this.lightPoint.setPosition(position.x, position.y);
-      this.lightPoint.setVisible(true);
+      point.setPosition(position.x, position.y);
+      point.setVisible(true);
       console.log('randomCell', randomCell, position.x, position.y);
     } else {
       console.error('randomCell is undefined');
     }
   }
-
-
   scheduleNextWallRemoval(cell1: Cell, cell2: Cell) {
-    const TIME_STEP = 50;
+    const TIME_STEP = 50 * (8*8) / (this.rows * this.cols) ;
 
     if (cell1.row == cell2.row) {
       if (cell2.col < cell1.col) { // left
@@ -165,17 +281,30 @@ export default class Maze extends Phaser.Scene {
     this.destroyedWallCount += 1;
   }
 
-  _moveLightToPoint(pointer: Phaser.Input.InputPlugin) {
+  private showPointsBriefly() {
+    const circles = this.points
+    .filter(point => point.visible)
+    .map((point: Phaser.GameObjects.Arc) => this.add.circle(point.x + this.gridView.startX, point.y+ this.gridView.startY, 5, 0x87F090).setAlpha(0));
+
+    this.tweens.add({
+      targets: circles,
+      alpha: 1,
+      duration: 1000,
+      ease: 'Sine.easeInOut',
+      repeat: 0,
+      yoyo: true
+    });
+  }
+
+  moveLightToPoint(pointer: Phaser.Input.InputPlugin) {
     let targetX = Phaser.Math.Clamp(pointer.x, this.gridView.startX, this.gridView.startX + this.gridView.gridWidth) - this.gridView.startX;
     let targetY = Phaser.Math.Clamp(pointer.y, this.gridView.startY, this.gridView.startY + this.gridView.gridHeight) - this.gridView.startY;
     let dx = pointer.x - this.gridView.startX - this.lightPoint.x;
     let dy = pointer.y - this.gridView.startY - this.lightPoint.y;
     let distance = Math.sqrt(dx * dx + dy * dy);
 
-    //let speed = Math.log(distance+1) * 20;  // using log to slow down the speed when the light is far away
-
-    //let speed = (distance < 200) ? distance/2 : 200/2 + Math.log(distance+1 *2) * 20;
     let speed = calculateSpeed(distance);
+
     this.lightPointTarget = { x: targetX, y: targetY };  // Stockez la cible
 
     this.physics.moveTo(this.lightPoint, targetX, targetY, speed);
