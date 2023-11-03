@@ -13,13 +13,13 @@ const formatTime = (milliseconds: number): string => {
 
   return `${formattedMinutes}:${formattedSeconds}:${formattedMillis}`;
 }
-
+let timerEvent: Phaser.Time.TimerEvent | null = null;
 /**
  * Create a timer
- * @param scene
+ * @param maze
  */
-const createTimer = (scene: Maze) => {
-  scene.timerText = scene.add.text(
+const createTimer = (maze: Maze) => {
+  maze.timerText = maze.add.text(
     config.scale.width - 10,
     10,
     'Time: 00:00:0000',
@@ -29,16 +29,29 @@ const createTimer = (scene: Maze) => {
       color: '#ffffff',
     }
   );
-  scene.timerText.setOrigin(1, 0);
+  maze.timerText.setOrigin(1, 0);
 
-  scene.time.addEvent({
+  timerEvent = maze.time.addEvent({
     delay: 100,
     loop: true,
     callback: () => {
-      scene.elapsedTime += 100;
-      const formattedTime = formatTime(scene.elapsedTime);
-      scene.timerText.setText(`Time: ${formattedTime}`);
+      maze.elapsedTime += 100;
+      const formattedTime = formatTime(maze.elapsedTime);
+      maze.timerText.setText(`Time: ${formattedTime}`);
     },
   });
 }
-export {createTimer, formatTime};
+
+const stopTimer = (maze: Maze) => {
+  if (timerEvent) {
+    timerEvent.remove();
+    timerEvent = null;
+  }
+}
+
+const resetTimer = (maze: Maze) => {
+  maze.elapsedTime = 0;
+  maze.timerText.destroy();
+}
+export {createTimer, formatTime, resetTimer, stopTimer};
+

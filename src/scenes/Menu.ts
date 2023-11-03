@@ -1,21 +1,19 @@
 import Phaser from 'phaser';
+import InputText from 'phaser3-rex-plugins/plugins/inputtext.js';
 import config from '../config';
 import createButton from '../utils/createButton';
+import {setUsername} from '../utils/username';
+
+
 export default class Menu extends Phaser.Scene {
   constructor() {
     super('MainMenuScene');
   }
 
-  preload() {
-    this.load.image('logo', 'assets/phaser3-logo.png');
-  }
-
   create() {
-    const gameWidth = config.scale.width;
-    // Afficher le texte du titre du menu
     const titleText = this.add.text(
-      gameWidth / 2,
-      100,
+      config.scale.width / 2,
+      50,
       'Menu Principal',
       {
         fontSize: '32px',
@@ -24,6 +22,26 @@ export default class Menu extends Phaser.Scene {
     );
     titleText.setOrigin(0.5);
 
+    this.add.text(config.scale.width * 0.5 - 150, 100, 'Nickname:', {
+      color: 'white',
+      fontSize: '20px'
+    }).setOrigin(0.5);
+
+    // Ajout de textEntry pour la saisie du pseudo
+    const textEntry = new InputText(this, config.scale.width * 0.5, 100, 200, 50);
+    this.add.existing(textEntry);
+    textEntry.on('textchange', function (inputText:any) {
+      setUsername(inputText.text)
+    })
+
+    const worlds = ['World 1', 'World 2', 'World 3'];
+    const worldScenes = ['World01', 'World02', 'World03'];
+    worlds.forEach((world, index) => {
+      createButton(this, config.scale.width / 2, 200 + index * 100, world, worldScenes[index]);
+    });
+
+    // Afficher le texte du titre du menu
+    /*
     // Créer le bouton de la première scène
     const button1 = createButton(
       this,
@@ -49,6 +67,6 @@ export default class Menu extends Phaser.Scene {
       400,
       'Maze 3',
       'Maze03'
-    );
-  }
+    );*/
+  };
 }

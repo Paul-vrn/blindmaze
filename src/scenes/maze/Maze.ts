@@ -5,9 +5,11 @@ import {RecursiveBacktracker} from '../../generators/recursive-backtracker';
 import {Cell} from '../../models/cell';
 import {Grid} from '../../models/grid';
 import calculateSpeed from '../../utils/calculateSpeed';
-import {formatTime} from '../../utils/timer';
+import {addScore, calculateScore} from '../../utils/store';
+import {createTimer, formatTime, resetTimer, stopTimer} from '../../utils/timer';
 
 export default class Maze extends Phaser.Scene {
+  private mazeName: string;
   private rows: number;
   private cols: number;
   private gridView!: GridView;
@@ -27,6 +29,7 @@ export default class Maze extends Phaser.Scene {
   private topText: Phaser.GameObjects.Text | null = null;
   constructor(name: string, rows = 5, cols = 8, nbPoints = 3) {
     super(name);
+    this.mazeName = name;
     this.rows = rows;
     this.cols = cols;
     this.nbPoints = nbPoints;
@@ -128,7 +131,7 @@ export default class Maze extends Phaser.Scene {
     this.gridView.container.setMask(this.mask);
     this.lightPoint.setMask(this.mask);
     this.points.forEach((point: Phaser.GameObjects.Arc) => point.setMask(this.mask));
-
+    createTimer(this);
     this.time.addEvent({
       //delay: 20000, // 20 seconds
       delay: 20000,
@@ -165,12 +168,13 @@ export default class Maze extends Phaser.Scene {
   
   checkGameOver() {
     if (this.currentNbPoints === 0) {
-      this.showGameFinished();
+      this.endGame();
     }
   }
 
-  private showGameFinished() {
+  private endGame() {
     // Stop any active game mechanics
+    stopTimer(this);
     this.scheduler.removeAllEvents();
     this.lightPoint.body.velocity.x = 0;
     this.lightPoint.body.velocity.y = 0;
@@ -189,27 +193,10 @@ export default class Maze extends Phaser.Scene {
       }).setOrigin(0.5, 0.5); // Align text to the top left of the game grid
     }
     this.time.delayedCall(5000, () => {
+      addScore({name: 'test', mazeName: this.mazeName, score: calculateScore(this.elapsedTime, 1)});
+      resetTimer(this);
       this.scene.start('MainMenuScene');  // replace 'MainScene' with the key of your main scene
   });
-  }
-  private showPointsLeft() {
-    // If the text already exists, just update it.
-    if (this.topText) {
-      this.topText.setText(`${this.nbPoints} points left to find`);
-    } else {
-      // Create the text if it does not exist.
-      this.topText = this.add.text(this.gridView.startX, 10, `${this.nbPoints} points left to find`, {
-        align: 'left',
-        fontSize: '20px',
-        color: '#000'
-      }).setOrigin(0, 0); // Align text to the top left of the game grid
-    }
-    this.time.delayedCall(3000, () => {
-      if (this.topText) {
-        this.topText.destroy();
-        this.topText = null;
-      }
-    });
   }
 
   update(time: number, delta: number): void {
