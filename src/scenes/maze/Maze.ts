@@ -10,12 +10,15 @@ import {createTimer, formatTime, resetTimer, stopTimer} from '../../utils/timer'
 
 export default class Maze extends Phaser.Scene {
   private mazeName: string;
+  private enableDeadWalls: boolean;
+  private enableEnemies: boolean;
   private rows: number;
   private cols: number;
   private gridView!: GridView;
   private scheduler!: any;
   private destroyedWallCount: number;
   private lightPoint!: Phaser.GameObjects.Arc;
+  private startCell!: Cell;
   private points: Phaser.GameObjects.Arc[];
   private nbPoints: number;
   private currentNbPoints: number;
@@ -27,11 +30,13 @@ export default class Maze extends Phaser.Scene {
   timerText!: Phaser.GameObjects.Text;
   elapsedTime: number = 0;
   private topText: Phaser.GameObjects.Text | null = null;
-  constructor(name: string, rows = 5, cols = 8, nbPoints = 3) {
+  constructor(name: string, rows = 5, cols = 8, nbPoints = 3, enableDeadWalls = false, enableEnemies = false) {
     super(name);
     this.mazeName = name;
     this.rows = rows;
     this.cols = cols;
+    this.enableDeadWalls = enableDeadWalls;
+    this.enableEnemies = enableEnemies;
     this.nbPoints = nbPoints;
     this.currentNbPoints = nbPoints;
     this.points = []
@@ -79,7 +84,7 @@ export default class Maze extends Phaser.Scene {
     this.createPoints();
 
     // Placing light point and points
-    this.placePointInRandomCell(this.lightPoint);
+    this.startCell = this.placePointInRandomCell(this.lightPoint);
     this.points.forEach((point: Phaser.GameObjects.Arc) => this.placePointInRandomCell(point));
 
     
@@ -106,6 +111,9 @@ export default class Maze extends Phaser.Scene {
       color: '#000000'
     }).setOrigin(0.5, 0.5).setAlpha(0.3);
   
+    if (this.enableDeadWalls) {
+      this.createDeadWalls();
+    }
     this.time.addEvent({
       delay: 1000,
       repeat: 5,
@@ -226,7 +234,7 @@ export default class Maze extends Phaser.Scene {
     this.gridView.reset();
   }
 
-  placePointInRandomCell(point: Phaser.GameObjects.Arc) {
+  placePointInRandomCell(point: Phaser.GameObjects.Arc): Cell {
     const randomRow = Phaser.Math.RND.between(0, this.gridView.grid.rows - 1);
     const randomCol = Phaser.Math.RND.between(0, this.gridView.grid.cols - 1);
     const randomCell = this.grid?.get(randomRow, randomCol);
@@ -235,10 +243,10 @@ export default class Maze extends Phaser.Scene {
       const position = this.gridView._getCellCoordinates(randomCell);
       point.setPosition(position.x, position.y);
       point.setVisible(true);
-      console.log('randomCell', randomCell, position.x, position.y);
     } else {
       console.error('randomCell is undefined');
     }
+    return randomCell;
   }
   scheduleNextWallRemoval(cell1: Cell, cell2: Cell) {
     const TIME_STEP = 50 * (8*8) / (this.rows * this.cols) ;
@@ -268,6 +276,11 @@ export default class Maze extends Phaser.Scene {
     this.destroyedWallCount += 1;
   }
 
+  createDeadWalls() {
+    console.log(this.gridView.wallViews.length)
+    const remainingWalls = Object.values(this.gridView.wallViews).filter(wallView => wallView.alpha === 1);
+    console.log(remainingWalls.length)
+  }
   private showPointsBriefly() {
     const circles = this.points
     .filter(point => point.visible)

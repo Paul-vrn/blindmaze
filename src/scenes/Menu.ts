@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import InputText from 'phaser3-rex-plugins/plugins/inputtext.js';
 import config from '../config';
 import createButton from '../utils/createButton';
-import {setUsername} from '../utils/username';
+import {getUsername, setUsername} from '../models/username';
 
 
 export default class Menu extends Phaser.Scene {
@@ -30,6 +30,7 @@ export default class Menu extends Phaser.Scene {
     // Ajout de textEntry pour la saisie du pseudo
     const textEntry = new InputText(this, config.scale.width * 0.5, 100, 200, 50);
     this.add.existing(textEntry);
+    textEntry.setText(getUsername());
     textEntry.on('textchange', function (inputText:any) {
       setUsername(inputText.text)
     })
