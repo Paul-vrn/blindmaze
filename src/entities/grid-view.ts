@@ -5,7 +5,7 @@ import {Wall} from '../models/wall';
 const CELL_SIZE = 40;
 const WALL_THICKNESS = 5;
 
-interface ICoordinates {
+export interface ICoordinates {
   x: number;
   y: number;
 }
@@ -101,7 +101,6 @@ export class GridView {
       
       wallViews[`${wall.cell1.row}${wall.cell1.col},${wall.cell2.row}${wall.cell2.col}`] = wallView;
     });
-
     return wallViews;
   }
 

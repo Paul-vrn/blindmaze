@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 import InputText from 'phaser3-rex-plugins/plugins/inputtext.js';
 import config from '../config';
-import createButton from '../utils/createButton';
 import {getUsername, setUsername} from '../models/username';
+import {createButton} from '../utils/createButton';
 
 
 export default class Menu extends Phaser.Scene {

@@ -11,6 +11,7 @@ export type Difficulty = ObjectValues<typeof Difficulty>;
 
 export type MazeConfig = {
   title: string;
+  worldTitle: string;
   difficulty: Difficulty;
   rows: number;
   cols: number;
@@ -19,7 +20,7 @@ export type MazeConfig = {
   enableEnemies: boolean;
 };
 
-const GenerateMazeConfig = (title: string, difficulty: Difficulty, enableDeadWalls: boolean, enableEnemies: boolean): MazeConfig => {
+const GenerateMazeConfig = (title: string, worldTitle: string, difficulty: Difficulty, enableDeadWalls: boolean, enableEnemies: boolean): MazeConfig => {
   let rows: number;
   let cols: number;
   let nbPoints: number;
@@ -27,21 +28,22 @@ const GenerateMazeConfig = (title: string, difficulty: Difficulty, enableDeadWal
     case Difficulty.EASY:
       rows = Phaser.Math.RND.between(4, 6);
       cols = Phaser.Math.RND.between(6, 8);
-      nbPoints = Phaser.Math.RND.between(1, 3);
+      nbPoints = Phaser.Math.RND.between(2, 5);
       break;
     case Difficulty.MEDIUM:
       rows = Phaser.Math.RND.between(6, 8);
       cols = Phaser.Math.RND.between(8, 15);
-      nbPoints = Phaser.Math.RND.between(3, 5);
+      nbPoints = Phaser.Math.RND.between(5, 10);
       break;
     case Difficulty.HARD:
       rows = Phaser.Math.RND.between(8, 11);
       cols = Phaser.Math.RND.between(15, 20);
-      nbPoints = Phaser.Math.RND.between(5, 7);
+      nbPoints = Phaser.Math.RND.between(10, 17);
       break;
   }
   return {
     title,
+    worldTitle,
     difficulty,
     rows,
     cols,
