@@ -14,6 +14,8 @@ export default class Maze extends Phaser.Scene {
   worldTitle: string;
   private enableDeadWalls: boolean;
   private enableEnemies: boolean;
+  private nbEnemies: number;
+  private enemies!: Phaser.Physics.Arcade.Group;
   private rows: number;
   private cols: number;
   private gridView!: GridView;
@@ -42,6 +44,7 @@ export default class Maze extends Phaser.Scene {
     this.enableDeadWalls = config.enableDeadWalls;
     this.enableEnemies = config.enableEnemies;
     this.nbPoints = config.nbPoints;
+    this.nbEnemies = config.nbEnemies;
     this.currentNbPoints = config.nbPoints;
     this.points = []
     this.destroyedWallCount = 0;
@@ -106,6 +109,9 @@ export default class Maze extends Phaser.Scene {
         } else if (countdown === 2) {
           if (this.enableDeadWalls) {
             this.createDeadWalls();
+          }
+          if (this.enableEnemies) {
+            this.createEnemies();
           }
         }
       },
@@ -220,7 +226,7 @@ export default class Maze extends Phaser.Scene {
     this.gridView.reset();
   }
 
-  placePointInRandomCell(point: Phaser.GameObjects.Arc): ICoordinates | null {
+  placePointInRandomCell(point: Phaser.GameObjects.Arc | any): ICoordinates | null {
     const randomRow = Phaser.Math.RND.between(0, this.gridView.grid.rows - 1);
     const randomCol = Phaser.Math.RND.between(0, this.gridView.grid.cols - 1);
     const randomCell = this.grid?.get(randomRow, randomCol);
@@ -285,7 +291,35 @@ export default class Maze extends Phaser.Scene {
       });
     });
   }
+  createEnemies() {
+    for (let i = 0; i < this.nbEnemies; i++) {
+      const enemy = this.add.circle(0, 0, 5, 0xff0000);
+      this.physics.world.enable(enemy);
+      this.gridView.container.add(enemy);
 
+      const enemyPosition = this.placePointInRandomCell(enemy);
+      if (enemyPosition) {
+          enemy.setPosition(enemyPosition.x, enemyPosition.y);
+      }
+      enemy.setInteractive();
+      const speed = 70;
+      const angle = Phaser.Math.FloatBetween(0, 2 * Math.PI);
+      enemy.body.setVelocity(speed * Math.cos(angle), speed * Math.sin(angle));
+      enemy.body.setBounce(1, 1)
+      enemy.body.collideWorldBounds = true
+      enemy.body.allowGravity = false
+
+      Object.values(this.gridView.wallViews).forEach((wallView) => {
+          this.physics.add.collider(enemy, wallView);
+      });
+      this.gridView.outlineViews.forEach((outlineView) => {
+          this.physics.add.collider(enemy, outlineView);
+      });
+      this.physics.add.collider(this.lightPoint, enemy, () => {
+        this.lightPoint.setPosition(this.startPosition.x, this.startPosition.y);
+      });
+    }
+  }
   private showPointsBriefly() {
     const circles = this.points
     .filter(point => point.visible)
