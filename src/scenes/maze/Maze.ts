@@ -5,8 +5,8 @@ import {RecursiveBacktracker} from '../../generators/recursive-backtracker';
 import {Cell} from '../../models/cell';
 import {MazeConfig} from '../../models/gameConfig';
 import {Grid} from '../../models/grid';
+import {addLevelToWorld, addScore, calculateScore} from '../../models/store';
 import calculateSpeed from '../../utils/calculateSpeed';
-import {addScore, calculateScore} from '../../utils/store';
 import {createTimer, formatTime, resetTimer, stopTimer} from '../../utils/timer';
 
 export default class Maze extends Phaser.Scene {
@@ -15,7 +15,6 @@ export default class Maze extends Phaser.Scene {
   private enableDeadWalls: boolean;
   private enableEnemies: boolean;
   private nbEnemies: number;
-  private enemies!: Phaser.Physics.Arcade.Group;
   private rows: number;
   private cols: number;
   private gridView!: GridView;
@@ -189,6 +188,7 @@ export default class Maze extends Phaser.Scene {
         color: '#000'
       }).setOrigin(0.5, 0.5); // Align text to the top left of the game grid
     }
+    addLevelToWorld(this.worldTitle, this.title);
     this.time.delayedCall(5000, () => {
       addScore({name: 'test', mazeName: this.title, score: calculateScore(this.elapsedTime, 1)});
       resetTimer(this);
@@ -293,7 +293,7 @@ export default class Maze extends Phaser.Scene {
   }
   createEnemies() {
     for (let i = 0; i < this.nbEnemies; i++) {
-      const enemy = this.add.circle(0, 0, 5, 0xff0000);
+      const enemy: any = this.add.circle(0, 0, 5, 0xff0000);
       this.physics.world.enable(enemy);
       this.gridView.container.add(enemy);
 
@@ -315,7 +315,8 @@ export default class Maze extends Phaser.Scene {
       this.gridView.outlineViews.forEach((outlineView) => {
           this.physics.add.collider(enemy, outlineView);
       });
-      this.physics.add.collider(this.lightPoint, enemy, () => {
+      // overlap insdead of collider because we don't want the lightpoint to change the direction of the enemy
+      this.physics.add.overlap(this.lightPoint, enemy, () => {
         this.lightPoint.setPosition(this.startPosition.x, this.startPosition.y);
       });
     }

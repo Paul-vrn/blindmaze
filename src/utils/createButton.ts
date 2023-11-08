@@ -5,7 +5,7 @@ import Maze from '../scenes/maze/Maze';
 /**
  * create a button to start a scene
  */
-const createButton = (scene: Phaser.Scene, x: number, y: number, text: string, targetScene: string) => {
+const createButton = (scene: Phaser.Scene, x: number, y: number, text: string, targetScene: string, disable: boolean) => {
   const buttonStyle: Phaser.Types.GameObjects.Text.TextStyle = {
     fontSize: '24px',
     color: '#fff',
@@ -18,12 +18,14 @@ const createButton = (scene: Phaser.Scene, x: number, y: number, text: string, t
 
   const button = scene.add.text(x, y, text, buttonStyle);
   button.setOrigin(0.5);
-  button.setInteractive({ useHandCursor: true });
-
-  button.on('pointerdown', () => {
-    scene.scene.start(targetScene);
-  });
-
+  if (!disable) {
+    button.setInteractive({ useHandCursor: true });
+    button.on('pointerdown', () => {
+      scene.scene.start(targetScene);
+    });  
+  } else {
+    button.setAlpha(0.5);
+  }
   return button;
 }
 

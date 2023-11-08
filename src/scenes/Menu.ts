@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import InputText from 'phaser3-rex-plugins/plugins/inputtext.js';
 import config from '../config';
+import {getWorlds} from '../models/store';
 import {getUsername, setUsername} from '../models/username';
 import {createButton} from '../utils/createButton';
 
@@ -37,37 +38,14 @@ export default class Menu extends Phaser.Scene {
 
     const worlds = ['World 1', 'World 2', 'World 3'];
     const worldScenes = ['World01', 'World02', 'World03'];
+    const worldsAvancement = getWorlds();
     worlds.forEach((world, index) => {
-      createButton(this, config.scale.width / 2, 200 + index * 100, world, worldScenes[index]);
+      const previousWorld = worldsAvancement[worldScenes[index - 1]];
+      let disable = false;
+      if (index > 0) {
+        disable = !previousWorld || previousWorld.size < 3;
+      }
+      createButton(this, config.scale.width / 2, 200 + index * 100, world, worldScenes[index], disable);
     });
-
-    // Afficher le texte du titre du menu
-    /*
-    // Créer le bouton de la première scène
-    const button1 = createButton(
-      this,
-      gameWidth / 2,
-      200,
-      'Maze 1',
-      'Maze01'
-    );
-
-    // Créer le bouton de la deuxième scène
-    const button2 = createButton(
-      this,
-      gameWidth / 2,
-      300,
-      'Maze 2',
-      'Maze02'
-    );
-
-    // Créer le bouton de la troisième scène
-    const button3 = createButton(
-      this,
-      gameWidth / 2,
-      400,
-      'Maze 3',
-      'Maze03'
-    );*/
   };
 }
