@@ -36,19 +36,19 @@ const GenerateMazeConfig = (
       rows = Phaser.Math.RND.between(4, 6);
       cols = Phaser.Math.RND.between(6, 8);
       nbPoints = Phaser.Math.RND.between(2, 5);
-      nbEnemies = enableEnemies ? Phaser.Math.RND.between(1, 3) : 0;
+      nbEnemies = enableEnemies ? Phaser.Math.RND.between(2, 4) : 0;
       break;
     case Difficulty.MEDIUM:
       rows = Phaser.Math.RND.between(6, 8);
-      cols = Phaser.Math.RND.between(8, 15);
+      cols = Phaser.Math.RND.between(8, 12);
       nbPoints = Phaser.Math.RND.between(5, 10);
-      nbEnemies = enableEnemies ? Phaser.Math.RND.between(3, 5) : 0;
+      nbEnemies = enableEnemies ? Phaser.Math.RND.between(4, 7) : 0;
       break;
     case Difficulty.HARD:
       rows = Phaser.Math.RND.between(8, 11);
-      cols = Phaser.Math.RND.between(15, 20);
+      cols = Phaser.Math.RND.between(16, 16);
       nbPoints = Phaser.Math.RND.between(10, 17);
-      nbEnemies = enableEnemies ? Phaser.Math.RND.between(5, 8) : 0;
+      nbEnemies = enableEnemies ? Phaser.Math.RND.between(7, 10) : 0;
       break;
   }
   return {

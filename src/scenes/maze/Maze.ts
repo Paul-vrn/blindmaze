@@ -19,29 +19,33 @@ import {
 export default class Maze extends Phaser.Scene {
   title: string;
   worldTitle: string;
-  private enableDeadWalls: boolean;
-  private enableEnemies: boolean;
-  private nbEnemies: number;
-  private nbEnemyOrDeadWallTouched: number;
-  private rows: number;
-  private cols: number;
-  private gridView!: GridView;
-  private scheduler!: any;
-  private destroyedWallCount: number;
-  private lightPoint!: Phaser.GameObjects.Arc;
-  private startPosition!: ICoordinates;
-  private points: Phaser.GameObjects.Arc[];
-  private nbPoints: number;
-  private currentNbPoints: number;
-  private grid!: Grid;
-  private lightPointTarget!: ICoordinates | null;
-  private graphics!: Phaser.GameObjects.Graphics;
-  private generator!: RecursiveBacktracker;
-  private mask!: Phaser.Display.Masks.GeometryMask;
-  timerText!: Phaser.GameObjects.Text;
+  rows: number;
+  cols: number;
+  nbPoints: number;
+  enableDeadWalls: boolean;
+  enableEnemies: boolean;
+  nbEnemies: number;
+  nbEnemyOrDeadWallTouched: number;
+  destroyedWallCount: number;
+  currentNbPoints: number;
+  bonusCount: number = 3;
+  scheduler!: any;
   elapsedTime: number = 0;
-  private topText: Phaser.GameObjects.Text | null = null;
-  private wallColliders: Record<string, Phaser.Physics.Arcade.Collider>;
+  gridView!: GridView;
+  grid!: Grid;
+  startPosition!: ICoordinates;
+  lightPointTarget!: ICoordinates | null;
+  lightPoint!: Phaser.GameObjects.Arc;
+  points: Phaser.GameObjects.Arc[];
+  graphics!: Phaser.GameObjects.Graphics;
+  generator!: RecursiveBacktracker;
+  mask!: Phaser.Display.Masks.GeometryMask;
+  topText: Phaser.GameObjects.Text | null = null;
+  timerText!: Phaser.GameObjects.Text;
+  buttonBonus!: Phaser.GameObjects.Text;
+  buttonBack!: Phaser.GameObjects.Text;
+  wallColliders: Record<string, Phaser.Physics.Arcade.Collider>;
+
   constructor(config: MazeConfig) {
     super(config.title);
     this.title = config.title;
@@ -114,15 +118,30 @@ export default class Maze extends Phaser.Scene {
         y: 8,
       },
     };
-    const button = this.add.text(
-      this.scale.width * 0.8,
-      this.scale.height * 0.9,
+
+    this.buttonBonus = this.add.text(
+      this.scale.width * 0.2,
+      this.scale.height * 0.95,
+      `Bonus: ${this.bonusCount} left`,
+      buttonStyle
+    );
+    this.buttonBonus.setOrigin(0.5);
+    this.buttonBonus.setAlpha(0.5);
+    this.buttonBonus.on('pointerdown', () => {
+      this.buttonBonus.removeInteractive();
+      this.buttonBonus.setAlpha(0.5);
+      this.revealMazeBriefly();
+      this.buttonBonus.setText(`Bonus: ${this.bonusCount} left`);
+    });
+    this.buttonBack = this.add.text(
+      this.scale.width * 0.9,
+      this.scale.height * 0.95,
       'Back',
       buttonStyle
     );
-    button.setOrigin(0.5);
-    button.setInteractive({ useHandCursor: true });
-    button.on('pointerdown', () => {
+    this.buttonBack.setOrigin(0.5);
+    this.buttonBack.setAlpha(0.5);
+    this.buttonBack.on('pointerdown', () => {
       stopTimer();
       this.scheduler.removeAllEvents();
       resetTimer(this);
@@ -181,11 +200,15 @@ export default class Maze extends Phaser.Scene {
     this.points.forEach((point: Phaser.GameObjects.Arc) =>
       point.setMask(this.mask)
     );
+    this.buttonBack.setAlpha(1);
+    this.buttonBack.setInteractive({ useHandCursor: true });
+    this.buttonBonus.setAlpha(1);
+    this.buttonBonus.setInteractive({ useHandCursor: true });
     createTimer(this);
     this.time.addEvent({
       //delay: 20000, // 20 seconds
       delay: 20000,
-      callback: this.showPointsBriefly,
+      callback: this.revealPointsBriefly,
       callbackScope: this,
       loop: true,
     });
@@ -221,7 +244,7 @@ export default class Maze extends Phaser.Scene {
     }
   }
 
-  private endGame() {
+  endGame() {
     // Stop any active game mechanics
     stopTimer();
     this.scheduler.removeAllEvents();
@@ -291,7 +314,7 @@ export default class Maze extends Phaser.Scene {
       .fillCircle(
         this.lightPoint.x + this.gridView.startX,
         this.lightPoint.y + this.gridView.startY,
-        70
+        50
       );
   }
 
@@ -379,7 +402,7 @@ export default class Maze extends Phaser.Scene {
   }
   createEnemies() {
     for (let i = 0; i < this.nbEnemies; i++) {
-      const enemy: any = this.add.circle(0, 0, 5, 0xff0000);
+      const enemy: any = this.add.circle(0, 0, 3, 0xff0000);
       this.physics.world.enable(enemy);
       this.gridView.container.add(enemy);
 
@@ -388,7 +411,7 @@ export default class Maze extends Phaser.Scene {
         enemy.setPosition(enemyPosition.x, enemyPosition.y);
       }
       enemy.setInteractive();
-      const speed = 70;
+      const speed = 50;
       const angle = Phaser.Math.FloatBetween(0, 2 * Math.PI);
       enemy.body.setVelocity(speed * Math.cos(angle), speed * Math.sin(angle));
       enemy.body.setBounce(1, 1);
@@ -408,7 +431,7 @@ export default class Maze extends Phaser.Scene {
       });
     }
   }
-  private showPointsBriefly() {
+  revealPointsBriefly() {
     const circles = this.points
       .filter((point) => point.visible)
       .map((point: Phaser.GameObjects.Arc) =>
@@ -430,6 +453,29 @@ export default class Maze extends Phaser.Scene {
       repeat: 0,
       yoyo: true,
     });
+  }
+
+  revealMazeBriefly() {
+    console.log('revealMazeBriefly');
+    if (this.bonusCount < 1) {
+      return;
+    }
+    this.gridView.container.clearMask();
+    this.lightPoint.clearMask();
+    this.points.forEach((point: Phaser.GameObjects.Arc) => point.clearMask());
+
+    this.time.delayedCall(3000, () => {
+      this.gridView.container.setMask(this.mask);
+      this.lightPoint.setMask(this.mask);
+      this.points.forEach((point: Phaser.GameObjects.Arc) =>
+        point.setMask(this.mask)
+      );
+      if (this.bonusCount > 0) {
+        this.buttonBonus.setInteractive({ useHandCursor: true });
+        this.buttonBonus.setAlpha(1);
+      }
+    });
+    this.bonusCount--;
   }
 
   moveLightToPoint(pointer: Phaser.Input.InputPlugin) {

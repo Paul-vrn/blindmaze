@@ -26,7 +26,7 @@ const calculateScore = (
 
   // Calculate a time penalty (less time gives a higher score)
   const timePenalty = Math.max(0, time / 1000 / timeFactor);
-  console.log(baseScore, sizeBonus, pointBonus, enemyBonus, timePenalty);
+
   const score =
     baseScore +
     sizeBonus +
