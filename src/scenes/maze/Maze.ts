@@ -17,6 +17,7 @@ export default class Maze extends Phaser.Scene {
   private enableDeadWalls: boolean;
   private enableEnemies: boolean;
   private nbEnemies: number;
+  private nbEnemyOrDeadWallTouched: number;
   private rows: number;
   private cols: number;
   private gridView!: GridView;
@@ -49,6 +50,7 @@ export default class Maze extends Phaser.Scene {
     this.currentNbPoints = config.nbPoints;
     this.points = []
     this.destroyedWallCount = 0;
+    this.nbEnemyOrDeadWallTouched = 0;
     this.wallColliders = {};
   }
   create() {
@@ -192,10 +194,10 @@ export default class Maze extends Phaser.Scene {
     }
     addLevelToWorld(this.worldTitle, this.title);
     this.time.delayedCall(5000, () => {
-      addScore({
+      addScore(this.worldTitle, {
         name: getUsername(),
         mazeName: this.title,
-        score: calculateScore(this.elapsedTime, this.rows, this.cols, this.nbPoints, this.nbEnemies)
+        score: calculateScore(this.elapsedTime, this.rows, this.cols, this.nbPoints, this.nbEnemies, this.nbEnemyOrDeadWallTouched)
       });
       resetTimer(this);
       //this.scene.start('MainMenuScene');  // replace 'MainScene' with the key of your main scene
@@ -293,6 +295,7 @@ export default class Maze extends Phaser.Scene {
         this.wallColliders[key].destroy();
         this.physics.add.collider(this.lightPoint, wallView, () => {
           this.lightPoint.setPosition(this.startPosition.x, this.startPosition.y);
+          this.nbEnemyOrDeadWallTouched++;
         });
       });
     });
@@ -324,6 +327,7 @@ export default class Maze extends Phaser.Scene {
       // overlap insdead of collider because we don't want the lightpoint to change the direction of the enemy
       this.physics.add.overlap(this.lightPoint, enemy, () => {
         this.lightPoint.setPosition(this.startPosition.x, this.startPosition.y);
+        this.nbEnemyOrDeadWallTouched++;
       });
     }
   }

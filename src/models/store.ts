@@ -9,31 +9,34 @@ export type Worlds = {
 
 export type Scores = Score[];
 
-const getScores = (): Scores => {
-  const scores = localStorage.getItem("scores");
+const getScores = (world: string): Scores => {
+  const scores = localStorage.getItem(`scores_${world}`);
   if (scores) {
     return JSON.parse(scores);
   }
   return [];
 }
 
-const setScores = (scores: Scores): void => {
-  localStorage.setItem("scores", JSON.stringify(scores));
+const setScores = (worldName: string, scores: Scores): void => {
+  localStorage.setItem(`scores_${worldName}`, JSON.stringify(scores));
 };
 
 
-const getScoresByMazeName = (mazeName: string): Scores => {
-  const scores = getScores();
+const getScoresByMazeName = (worldName: string, mazeName: string): Scores => {
+  const scores = getScores(worldName);
   return scores.filter(score => score.mazeName === mazeName);
 };
 
-const addScore = (score: Score): void => {
-  const scores = getScores();
+const addScore = (worldName: string, score: Score): void => {
+  console.log(score);
+  const scores = getScores(worldName);
   const index = scores.findIndex(s => s.mazeName === score.mazeName && s.name === score.name);
   if (index >= 0) {
     scores[index] = score;
+  } else {
+    scores.push(score);
   }
-  setScores(scores);
+  setScores(worldName, scores);
 }
 
 
