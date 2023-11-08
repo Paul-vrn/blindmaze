@@ -120,7 +120,7 @@ export default class Maze extends Phaser.Scene {
     };
 
     this.buttonBonus = this.add.text(
-      this.scale.width * 0.2,
+      this.scale.width * 0.17,
       this.scale.height * 0.95,
       `Bonus: ${this.bonusCount} left`,
       buttonStyle
@@ -134,7 +134,7 @@ export default class Maze extends Phaser.Scene {
       this.buttonBonus.setText(`Bonus: ${this.bonusCount} left`);
     });
     this.buttonBack = this.add.text(
-      this.scale.width * 0.9,
+      this.scale.width * 0.91,
       this.scale.height * 0.95,
       'Back',
       buttonStyle
@@ -251,6 +251,10 @@ export default class Maze extends Phaser.Scene {
     this.lightPoint.body.velocity.x = 0;
     this.lightPoint.body.velocity.y = 0;
     this.lightPoint.setInteractive(false);
+    this.buttonBack.removeInteractive();
+    this.buttonBonus.removeInteractive();
+    this.buttonBack.setAlpha(0.5);
+    this.buttonBonus.setAlpha(0.5);
     this.input.off('pointermove', this.moveLightToPoint, this);
     this.gridView.container.clearMask();
     this.lightPoint.clearMask();
