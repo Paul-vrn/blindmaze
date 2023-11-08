@@ -1,9 +1,13 @@
-type Score = {
+export type Score = {
   mazeName: string;
   name: string;
   score: number;
 };
-type Scores = Score[];
+export type Worlds = {
+  [worldName: string]: Set<string>;
+}
+
+export type Scores = Score[];
 
 const getScores = (): Scores => {
   const scores = localStorage.getItem("scores");
@@ -30,14 +34,6 @@ const addScore = (score: Score): void => {
     scores[index] = score;
   }
   setScores(scores);
-}
-
-const calculateScore = (time: number, difficulty: number): number => {
-  return Math.trunc(100000 / (time * difficulty));
-}
-
-type Worlds = {
-  [worldName: string]: Set<string>;
 }
 
 
@@ -80,5 +76,5 @@ const addLevelToWorld = (worldName: string, levelName: string): void => {
   localStorage.setItem("worlds", serializeWorlds(worlds));
 }
 
-export {addLevelToWorld, addScore, calculateScore, getScores, getScoresByMazeName, getWorlds, setScores};
+export {addLevelToWorld, addScore, getScores, getScoresByMazeName, getWorlds, setScores};
 

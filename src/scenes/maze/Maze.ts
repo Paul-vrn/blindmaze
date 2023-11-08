@@ -5,7 +5,9 @@ import {RecursiveBacktracker} from '../../generators/recursive-backtracker';
 import {Cell} from '../../models/cell';
 import {MazeConfig} from '../../models/gameConfig';
 import {Grid} from '../../models/grid';
-import {addLevelToWorld, addScore, calculateScore} from '../../models/store';
+import calculateScore from '../../models/score';
+import {addLevelToWorld, addScore} from '../../models/store';
+import {getUsername} from '../../models/username';
 import calculateSpeed from '../../utils/calculateSpeed';
 import {createTimer, formatTime, resetTimer, stopTimer} from '../../utils/timer';
 
@@ -190,7 +192,11 @@ export default class Maze extends Phaser.Scene {
     }
     addLevelToWorld(this.worldTitle, this.title);
     this.time.delayedCall(5000, () => {
-      addScore({name: 'test', mazeName: this.title, score: calculateScore(this.elapsedTime, 1)});
+      addScore({
+        name: getUsername(),
+        mazeName: this.title,
+        score: calculateScore(this.elapsedTime, this.rows, this.cols, this.nbPoints, this.nbEnemies)
+      });
       resetTimer(this);
       //this.scene.start('MainMenuScene');  // replace 'MainScene' with the key of your main scene
       this.scene.remove(this.title);

@@ -1,7 +1,7 @@
 
 let username: string | null = null;
 
-const getUsername = () => {
+const getUsername = (): string => {
   return username ?? 'Anonymous';
 }
 
