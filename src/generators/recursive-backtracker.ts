@@ -1,7 +1,7 @@
 import 'phaser';
-import {GridView} from '../entities/grid-view';
-import {Cell} from '../models/cell';
-import {Grid} from '../models/grid';
+import { GridView } from '../entities/grid-view';
+import { Cell } from '../models/cell';
+import { Grid } from '../models/grid';
 import Maze from '../scenes/maze/Maze';
 
 export class RecursiveBacktracker {
@@ -25,7 +25,6 @@ export class RecursiveBacktracker {
     this.cellStack = [];
 
     this.grid.forEachCell((cell: Cell) => delete cell.visited);
-
   }
 
   generate() {
@@ -39,13 +38,17 @@ export class RecursiveBacktracker {
   // private
 
   canStep() {
-    return this.grid.someCell(cell => !cell.visited);
+    return this.grid.someCell((cell) => !cell.visited);
   }
 
   step() {
     const cell = this.grid.get(this.currentRow, this.currentCol);
-    const neighbors = Object.values(this.grid.getNeighbors(cell)).filter(x => x);
-    const unvisitedNeighbors = neighbors.filter(neighbor => !neighbor.visited);
+    const neighbors = Object.values(this.grid.getNeighbors(cell)).filter(
+      (x) => x
+    );
+    const unvisitedNeighbors = neighbors.filter(
+      (neighbor) => !neighbor.visited
+    );
 
     if (unvisitedNeighbors.length) {
       const neighbor = Phaser.Math.RND.pick(unvisitedNeighbors);

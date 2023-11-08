@@ -4,18 +4,18 @@ export default {
   parent: 'game',
   backgroundColor: '#33A5E7',
   dom: {
-    createContainer: true
+    createContainer: true,
   },
   scale: {
     width: 800,
     height: 600,
     mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH
+    autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   physics: {
     default: 'arcade',
     arcade: {
-        debug: false
+      debug: false,
     },
-}
+  },
 };

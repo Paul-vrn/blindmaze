@@ -7,6 +7,6 @@ import World03 from './scenes/world/World_03';
 
 new Phaser.Game(
   Object.assign(config, {
-    scene: [Menu, World01, World02, World03]
+    scene: [Menu, World01, World02, World03],
   })
 );

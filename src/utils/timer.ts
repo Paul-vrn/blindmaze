@@ -1,18 +1,17 @@
-import config from "../config";
-import Maze from "../scenes/maze/Maze";
-
+import config from '../config';
+import Maze from '../scenes/maze/Maze';
 
 const formatTime = (milliseconds: number): string => {
   const minutes = Math.floor(milliseconds / 60000);
   const seconds = Math.floor((milliseconds % 60000) / 1000);
-  const millis = milliseconds % 1000 / 100;
+  const millis = (milliseconds % 1000) / 100;
 
   const formattedMinutes = String(minutes).padStart(2, '0');
   const formattedSeconds = String(seconds).padStart(2, '0');
   const formattedMillis = String(millis);
 
   return `${formattedMinutes}:${formattedSeconds}:${formattedMillis}`;
-}
+};
 let timerEvent: Phaser.Time.TimerEvent | null = null;
 /**
  * Create a timer
@@ -40,18 +39,17 @@ const createTimer = (maze: Maze) => {
       maze.timerText.setText(`Time: ${formattedTime}`);
     },
   });
-}
+};
 
 const stopTimer = (maze: Maze) => {
   if (timerEvent) {
     timerEvent.remove();
     timerEvent = null;
   }
-}
+};
 
 const resetTimer = (maze: Maze) => {
   maze.elapsedTime = 0;
   maze.timerText.destroy();
-}
-export {createTimer, formatTime, resetTimer, stopTimer};
-
+};
+export { createTimer, formatTime, resetTimer, stopTimer };

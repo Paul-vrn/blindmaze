@@ -1,8 +1,7 @@
-
 const Difficulty = {
-  EASY: "EASY",
-  MEDIUM: "MEDIUM",
-  HARD: "HARD",
+  EASY: 'EASY',
+  MEDIUM: 'MEDIUM',
+  HARD: 'HARD',
 } as const;
 
 type ObjectValues<T> = T[keyof T];
@@ -21,7 +20,13 @@ export type MazeConfig = {
   enableEnemies: boolean;
 };
 
-const GenerateMazeConfig = (title: string, worldTitle: string, difficulty: Difficulty, enableDeadWalls: boolean, enableEnemies: boolean): MazeConfig => {
+const GenerateMazeConfig = (
+  title: string,
+  worldTitle: string,
+  difficulty: Difficulty,
+  enableDeadWalls: boolean,
+  enableEnemies: boolean
+): MazeConfig => {
   let rows: number;
   let cols: number;
   let nbPoints: number;
@@ -59,4 +64,4 @@ const GenerateMazeConfig = (title: string, worldTitle: string, difficulty: Diffi
   };
 };
 
-export {Difficulty, GenerateMazeConfig};
+export { Difficulty, GenerateMazeConfig };

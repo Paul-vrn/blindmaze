@@ -1,15 +1,20 @@
 import 'phaser';
 import config from '../../config';
-import {GridView, ICoordinates} from '../../entities/grid-view';
-import {RecursiveBacktracker} from '../../generators/recursive-backtracker';
-import {Cell} from '../../models/cell';
-import {MazeConfig} from '../../models/gameConfig';
-import {Grid} from '../../models/grid';
+import { GridView, ICoordinates } from '../../entities/grid-view';
+import { RecursiveBacktracker } from '../../generators/recursive-backtracker';
+import { Cell } from '../../models/cell';
+import { MazeConfig } from '../../models/gameConfig';
+import { Grid } from '../../models/grid';
 import calculateScore from '../../models/score';
-import {addLevelToWorld, addScore} from '../../models/store';
-import {getUsername} from '../../models/username';
+import { addLevelToWorld, addScore } from '../../models/store';
+import { getUsername } from '../../models/username';
 import calculateSpeed from '../../utils/calculateSpeed';
-import {createTimer, formatTime, resetTimer, stopTimer} from '../../utils/timer';
+import {
+  createTimer,
+  formatTime,
+  resetTimer,
+  stopTimer,
+} from '../../utils/timer';
 
 export default class Maze extends Phaser.Scene {
   title: string;
@@ -31,12 +36,12 @@ export default class Maze extends Phaser.Scene {
   private grid!: Grid;
   private lightPointTarget!: ICoordinates | null;
   private graphics!: Phaser.GameObjects.Graphics;
-  private generator!: RecursiveBacktracker
+  private generator!: RecursiveBacktracker;
   private mask!: Phaser.Display.Masks.GeometryMask;
   timerText!: Phaser.GameObjects.Text;
   elapsedTime: number = 0;
   private topText: Phaser.GameObjects.Text | null = null;
-  private wallColliders: Record<string, 	Phaser.Physics.Arcade.Collider>;
+  private wallColliders: Record<string, Phaser.Physics.Arcade.Collider>;
   constructor(config: MazeConfig) {
     super(config.title);
     this.title = config.title;
@@ -48,7 +53,7 @@ export default class Maze extends Phaser.Scene {
     this.nbPoints = config.nbPoints;
     this.nbEnemies = config.nbEnemies;
     this.currentNbPoints = config.nbPoints;
-    this.points = []
+    this.points = [];
     this.destroyedWallCount = 0;
     this.nbEnemyOrDeadWallTouched = 0;
     this.wallColliders = {};
@@ -56,15 +61,22 @@ export default class Maze extends Phaser.Scene {
   create() {
     this.currentNbPoints = this.nbPoints;
     this.cameras.main.setBackgroundColor(0xcacaca);
-    
+
     this.scheduler = new Phaser.Time.Clock(this);
     this.scheduler.start();
 
-    this.graphics = this.make.graphics({ lineStyle: { color: 0x0000FF, width: 0.5 } });
+    this.graphics = this.make.graphics({
+      lineStyle: { color: 0x0000ff, width: 0.5 },
+    });
     this.mask = new Phaser.Display.Masks.GeometryMask(this, this.graphics);
-    
+
     this.grid = new Grid(this.rows, this.cols);
-    this.gridView = new GridView(this, this.grid, config.scale.width / 2, config.scale.height / 2);
+    this.gridView = new GridView(
+      this,
+      this.grid,
+      config.scale.width / 2,
+      config.scale.height / 2
+    );
     this.generator = new RecursiveBacktracker(this, this.grid, this.gridView);
     //this.gridView = new GridView(this, this.grid, 250, 250);
 
@@ -73,15 +85,19 @@ export default class Maze extends Phaser.Scene {
 
     // Placing light point and points
     this.startPosition = this.placePointInRandomCell(this.lightPoint)!;
-    this.points.forEach((point: Phaser.GameObjects.Arc) => this.placePointInRandomCell(point));
+    this.points.forEach((point: Phaser.GameObjects.Arc) =>
+      this.placePointInRandomCell(point)
+    );
 
-    
     // COLLISION
-    for (let key in this.gridView.wallViews) {
+    for (const key in this.gridView.wallViews) {
       const wallView = this.gridView.wallViews[key];
-      this.wallColliders[key] = this.physics.add.collider(this.lightPoint, wallView);
+      this.wallColliders[key] = this.physics.add.collider(
+        this.lightPoint,
+        wallView
+      );
     }
-    console.log(this.physics.world.colliders)
+    console.log(this.physics.world.colliders);
     this.gridView.outlineViews.forEach((outlineView: any) => {
       this.physics.add.collider(this.lightPoint, outlineView);
     });
@@ -94,11 +110,19 @@ export default class Maze extends Phaser.Scene {
 
   countDown() {
     let countdown = 5;
-    let countdownText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, String(countdown), {
-      font: '412px Arial',
-      color: '#000000'
-    }).setOrigin(0.5, 0.5).setAlpha(0.3);
-  
+    const countdownText = this.add
+      .text(
+        this.cameras.main.centerX,
+        this.cameras.main.centerY,
+        String(countdown),
+        {
+          font: '412px Arial',
+          color: '#000000',
+        }
+      )
+      .setOrigin(0.5, 0.5)
+      .setAlpha(0.3);
+
     this.time.addEvent({
       delay: 1000,
       repeat: 5,
@@ -118,9 +142,9 @@ export default class Maze extends Phaser.Scene {
           }
         }
       },
-      callbackScope: this
+      callbackScope: this,
     });
-  
+
     this.time.delayedCall(6000, () => {
       this.startGame();
     });
@@ -130,14 +154,16 @@ export default class Maze extends Phaser.Scene {
     this.input.on('pointermove', this.moveLightToPoint, this);
     this.gridView.container.setMask(this.mask);
     this.lightPoint.setMask(this.mask);
-    this.points.forEach((point: Phaser.GameObjects.Arc) => point.setMask(this.mask));
+    this.points.forEach((point: Phaser.GameObjects.Arc) =>
+      point.setMask(this.mask)
+    );
     createTimer(this);
     this.time.addEvent({
       //delay: 20000, // 20 seconds
       delay: 20000,
       callback: this.showPointsBriefly,
       callbackScope: this,
-      loop: true
+      loop: true,
     });
   }
   createLightPoint() {
@@ -146,11 +172,10 @@ export default class Maze extends Phaser.Scene {
     this.physics.world.enable(this.lightPoint);
     this.lightPoint.setInteractive();
     this.gridView.container.add(this.lightPoint);
-
   }
   createPoints() {
-    for(let i = 0; i < this.currentNbPoints; i++){
-      const point = this.add.circle(0, 0, 5, 0x87F090);
+    for (let i = 0; i < this.currentNbPoints; i++) {
+      const point = this.add.circle(0, 0, 5, 0x87f090);
       point.setVisible(true);
       this.physics.world.enable(point);
       point.setInteractive();
@@ -165,7 +190,7 @@ export default class Maze extends Phaser.Scene {
       this.points.push(point);
     }
   }
-  
+
   checkGameOver() {
     if (this.currentNbPoints === 0) {
       this.endGame();
@@ -184,47 +209,66 @@ export default class Maze extends Phaser.Scene {
     this.lightPoint.clearMask();
     this.points.forEach((point: Phaser.GameObjects.Arc) => point.clearMask());
     if (this.topText) {
-      this.topText.setText(`Game Finished!\nTime: ${formatTime(this.elapsedTime)}`);
+      this.topText.setText(
+        `Game Finished!\nTime: ${formatTime(this.elapsedTime)}`
+      );
     } else {
-      this.topText = this.add.text(config.scale.width/2, 50, `Game Finished!\nTime: ${formatTime(this.elapsedTime)}`, {
-        align: 'center',
-        fontSize: '40px',
-        color: '#000'
-      }).setOrigin(0.5, 0.5); // Align text to the top left of the game grid
+      this.topText = this.add
+        .text(
+          config.scale.width / 2,
+          50,
+          `Game Finished!\nTime: ${formatTime(this.elapsedTime)}`,
+          {
+            align: 'center',
+            fontSize: '40px',
+            color: '#000',
+          }
+        )
+        .setOrigin(0.5, 0.5); // Align text to the top left of the game grid
     }
     addLevelToWorld(this.worldTitle, this.title);
     this.time.delayedCall(5000, () => {
       addScore(this.worldTitle, {
         name: getUsername(),
         mazeName: this.title,
-        score: calculateScore(this.elapsedTime, this.rows, this.cols, this.nbPoints, this.nbEnemies, this.nbEnemyOrDeadWallTouched)
+        score: calculateScore(
+          this.elapsedTime,
+          this.rows,
+          this.cols,
+          this.nbPoints,
+          this.nbEnemies,
+          this.nbEnemyOrDeadWallTouched
+        ),
       });
       resetTimer(this);
       //this.scene.start('MainMenuScene');  // replace 'MainScene' with the key of your main scene
       this.scene.remove(this.title);
       //worldTitle
       this.scene.run(this.worldTitle);
-  });
+    });
   }
 
   update(time: number, delta: number): void {
-
     if (this.lightPointTarget) {
-      let dx = this.lightPointTarget.x - this.lightPoint.x;
-      let dy = this.lightPointTarget.y - this.lightPoint.y;
-      let distanceToTarget = Math.sqrt(dx * dx + dy * dy);
+      const dx = this.lightPointTarget.x - this.lightPoint.x;
+      const dy = this.lightPointTarget.y - this.lightPoint.y;
+      const distanceToTarget = Math.sqrt(dx * dx + dy * dy);
 
-      if (distanceToTarget < 5) {  // Par exemple, si moins de 5 pixels de la cible
+      if (distanceToTarget < 5) {
+        // Par exemple, si moins de 5 pixels de la cible
         this.lightPoint.body.velocity.x = 0;
         this.lightPoint.body.velocity.y = 0;
-        this.lightPointTarget = null;  // Réinitialisez la cible
+        this.lightPointTarget = null; // Réinitialisez la cible
       }
     }
     this.graphics
-    .clear()
-    .fillStyle(0x000000)
-    .fillCircle(this.lightPoint.x+ this.gridView.startX, this.lightPoint.y+ this.gridView.startY, 70);
-
+      .clear()
+      .fillStyle(0x000000)
+      .fillCircle(
+        this.lightPoint.x + this.gridView.startX,
+        this.lightPoint.y + this.gridView.startY,
+        70
+      );
   }
 
   _reset() {
@@ -234,7 +278,7 @@ export default class Maze extends Phaser.Scene {
     this.gridView.reset();
   }
 
-  placePointInRandomCell(point: Phaser.GameObjects.Arc | any): ICoordinates | null {
+  placePointInRandomCell(point: Phaser.GameObjects.Arc): ICoordinates | null {
     const randomRow = Phaser.Math.RND.between(0, this.gridView.grid.rows - 1);
     const randomCol = Phaser.Math.RND.between(0, this.gridView.grid.cols - 1);
     const randomCell = this.grid?.get(randomRow, randomCol);
@@ -243,31 +287,35 @@ export default class Maze extends Phaser.Scene {
       const position = this.gridView._getCellCoordinates(randomCell);
       point.setPosition(position.x, position.y);
       point.setVisible(true);
-      return position
+      return position;
     } else {
       console.error('randomCell is undefined');
     }
     return null;
   }
   scheduleNextWallRemoval(cell1: Cell, cell2: Cell) {
-    const TIME_STEP = 50 * (8*8) / (this.rows * this.cols) ;
+    const TIME_STEP = (50 * (8 * 8)) / (this.rows * this.cols);
 
     if (cell1.row == cell2.row) {
-      if (cell2.col < cell1.col) { // left
+      if (cell2.col < cell1.col) {
+        // left
         this.scheduler.delayedCall(TIME_STEP * this.destroyedWallCount, () => {
           this.gridView.destroyWall(cell1.walls.left!);
         });
-      } else { // right
+      } else {
+        // right
         this.scheduler.delayedCall(TIME_STEP * this.destroyedWallCount, () => {
           this.gridView.destroyWall(cell1.walls.right!);
         });
       }
     } else {
-      if (cell2.row < cell1.row) { // above
+      if (cell2.row < cell1.row) {
+        // above
         this.scheduler.delayedCall(TIME_STEP * this.destroyedWallCount, () => {
           this.gridView.destroyWall(cell1.walls.above!);
         });
-      } else { // below
+      } else {
+        // below
         this.scheduler.delayedCall(TIME_STEP * this.destroyedWallCount, () => {
           this.gridView.destroyWall(cell1.walls.below!);
         });
@@ -279,26 +327,31 @@ export default class Maze extends Phaser.Scene {
 
   createDeadWalls() {
     const keys = Object.keys(this.gridView.wallViews);
-    const remainingWalls = keys.filter(key => this.gridView.wallViews[key].body.enable);
+    const remainingWalls = keys.filter(
+      (key) => this.gridView.wallViews[key].body.enable
+    );
     Phaser.Utils.Array.Shuffle(remainingWalls)
-    .slice(0, Math.floor(remainingWalls.length * 0.3))
-    .forEach(key => {
-      const wallView = this.gridView.wallViews[key];
-      this.scheduler.delayedCall(500, () => {
-        this.gridView.scene.tweens.add({
-          targets: wallView,
-          props: {
-            fillColor: 0xff0000,
-          },
-          duration: 200,
-        });
-        this.wallColliders[key].destroy();
-        this.physics.add.collider(this.lightPoint, wallView, () => {
-          this.lightPoint.setPosition(this.startPosition.x, this.startPosition.y);
-          this.nbEnemyOrDeadWallTouched++;
+      .slice(0, Math.floor(remainingWalls.length * 0.3))
+      .forEach((key) => {
+        const wallView = this.gridView.wallViews[key];
+        this.scheduler.delayedCall(500, () => {
+          this.gridView.scene.tweens.add({
+            targets: wallView,
+            props: {
+              fillColor: 0xff0000,
+            },
+            duration: 200,
+          });
+          this.wallColliders[key].destroy();
+          this.physics.add.collider(this.lightPoint, wallView, () => {
+            this.lightPoint.setPosition(
+              this.startPosition.x,
+              this.startPosition.y
+            );
+            this.nbEnemyOrDeadWallTouched++;
+          });
         });
       });
-    });
   }
   createEnemies() {
     for (let i = 0; i < this.nbEnemies; i++) {
@@ -308,21 +361,21 @@ export default class Maze extends Phaser.Scene {
 
       const enemyPosition = this.placePointInRandomCell(enemy);
       if (enemyPosition) {
-          enemy.setPosition(enemyPosition.x, enemyPosition.y);
+        enemy.setPosition(enemyPosition.x, enemyPosition.y);
       }
       enemy.setInteractive();
       const speed = 70;
       const angle = Phaser.Math.FloatBetween(0, 2 * Math.PI);
       enemy.body.setVelocity(speed * Math.cos(angle), speed * Math.sin(angle));
-      enemy.body.setBounce(1, 1)
-      enemy.body.collideWorldBounds = true
-      enemy.body.allowGravity = false
+      enemy.body.setBounce(1, 1);
+      enemy.body.collideWorldBounds = true;
+      enemy.body.allowGravity = false;
 
       Object.values(this.gridView.wallViews).forEach((wallView) => {
-          this.physics.add.collider(enemy, wallView);
+        this.physics.add.collider(enemy, wallView);
       });
       this.gridView.outlineViews.forEach((outlineView) => {
-          this.physics.add.collider(enemy, outlineView);
+        this.physics.add.collider(enemy, outlineView);
       });
       // overlap insdead of collider because we don't want the lightpoint to change the direction of the enemy
       this.physics.add.overlap(this.lightPoint, enemy, () => {
@@ -333,8 +386,17 @@ export default class Maze extends Phaser.Scene {
   }
   private showPointsBriefly() {
     const circles = this.points
-    .filter(point => point.visible)
-    .map((point: Phaser.GameObjects.Arc) => this.add.circle(point.x + this.gridView.startX, point.y+ this.gridView.startY, 5, 0x87F090).setAlpha(0));
+      .filter((point) => point.visible)
+      .map((point: Phaser.GameObjects.Arc) =>
+        this.add
+          .circle(
+            point.x + this.gridView.startX,
+            point.y + this.gridView.startY,
+            5,
+            0x87f090
+          )
+          .setAlpha(0)
+      );
 
     this.tweens.add({
       targets: circles,
@@ -342,22 +404,31 @@ export default class Maze extends Phaser.Scene {
       duration: 1000,
       ease: 'Sine.easeInOut',
       repeat: 0,
-      yoyo: true
+      yoyo: true,
     });
   }
 
   moveLightToPoint(pointer: Phaser.Input.InputPlugin) {
-    let targetX = Phaser.Math.Clamp(pointer.x, this.gridView.startX, this.gridView.startX + this.gridView.gridWidth) - this.gridView.startX;
-    let targetY = Phaser.Math.Clamp(pointer.y, this.gridView.startY, this.gridView.startY + this.gridView.gridHeight) - this.gridView.startY;
-    let dx = pointer.x - this.gridView.startX - this.lightPoint.x;
-    let dy = pointer.y - this.gridView.startY - this.lightPoint.y;
-    let distance = Math.sqrt(dx * dx + dy * dy);
+    const targetX =
+      Phaser.Math.Clamp(
+        pointer.x,
+        this.gridView.startX,
+        this.gridView.startX + this.gridView.gridWidth
+      ) - this.gridView.startX;
+    const targetY =
+      Phaser.Math.Clamp(
+        pointer.y,
+        this.gridView.startY,
+        this.gridView.startY + this.gridView.gridHeight
+      ) - this.gridView.startY;
+    const dx = pointer.x - this.gridView.startX - this.lightPoint.x;
+    const dy = pointer.y - this.gridView.startY - this.lightPoint.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
 
-    let speed = calculateSpeed(distance);
+    const speed = calculateSpeed(distance);
 
-    this.lightPointTarget = { x: targetX, y: targetY };  // Stockez la cible
+    this.lightPointTarget = { x: targetX, y: targetY }; // Stockez la cible
 
     this.physics.moveTo(this.lightPoint, targetX, targetY, speed);
-
   }
 }

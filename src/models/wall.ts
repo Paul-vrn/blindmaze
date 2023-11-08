@@ -1,4 +1,4 @@
-import {Cell} from './cell';
+import { Cell } from './cell';
 
 export class Wall {
   cell1: Cell;

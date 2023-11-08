@@ -1,5 +1,5 @@
-import {Cell} from './cell';
-import {Wall} from './wall';
+import { Cell } from './cell';
+import { Wall } from './wall';
 
 interface ISize {
   rows: number;
@@ -42,27 +42,31 @@ export class Grid {
       const neighbors: INeighbors = this.getNeighbors(cell);
 
       if (neighbors.above) {
-        const wall = neighbors.above.walls.below || new Wall(neighbors.above, cell);
+        const wall =
+          neighbors.above.walls.below || new Wall(neighbors.above, cell);
         neighbors.above.walls.below = wall;
         cell.walls.above = wall;
         this.walls.add(wall);
       }
       if (neighbors.below) {
-        const wall = neighbors.below.walls.above || new Wall(neighbors.below, cell);
+        const wall =
+          neighbors.below.walls.above || new Wall(neighbors.below, cell);
         neighbors.below.walls.above = wall;
         cell.walls.below = wall;
         this.walls.add(wall);
       }
 
       if (neighbors.left) {
-        const wall = neighbors.left.walls.right || new Wall(neighbors.left, cell);
+        const wall =
+          neighbors.left.walls.right || new Wall(neighbors.left, cell);
         neighbors.left.walls.right = wall;
         cell.walls.left = wall;
         this.walls.add(wall);
       }
 
       if (neighbors.right) {
-        const wall = neighbors.right.walls.left || new Wall(neighbors.right, cell);
+        const wall =
+          neighbors.right.walls.left || new Wall(neighbors.right, cell);
         neighbors.right.walls.left = wall;
         cell.walls.right = wall;
         this.walls.add(wall);
@@ -93,11 +97,11 @@ export class Grid {
   }
 
   someCell(fn: (cell: Cell) => boolean): boolean {
-    return this.cells.some(row => row.some(fn));
+    return this.cells.some((row) => row.some(fn));
   }
 
   forEachCell(fn: (cell: Cell) => void): void {
-    this.cells.forEach(row => row.forEach(fn));
+    this.cells.forEach((row) => row.forEach(fn));
   }
 
   forEachWall(fn: (wall: Wall) => void): void {

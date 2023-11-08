@@ -1,11 +1,18 @@
 import 'phaser';
-import {MazeConfig} from '../models/gameConfig';
+import { MazeConfig } from '../models/gameConfig';
 import Maze from '../scenes/maze/Maze';
 
 /**
  * create a button to start a scene
  */
-const createButton = (scene: Phaser.Scene, x: number, y: number, text: string, targetScene: string, disable: boolean) => {
+const createButton = (
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  text: string,
+  targetScene: string,
+  disable: boolean
+) => {
   const buttonStyle: Phaser.Types.GameObjects.Text.TextStyle = {
     fontSize: '24px',
     color: '#fff',
@@ -22,14 +29,19 @@ const createButton = (scene: Phaser.Scene, x: number, y: number, text: string, t
     button.setInteractive({ useHandCursor: true });
     button.on('pointerdown', () => {
       scene.scene.start(targetScene);
-    });  
+    });
   } else {
     button.setAlpha(0.5);
   }
   return button;
-}
+};
 
-const createMazeButton = (scene: Phaser.Scene, x: number, y: number, mazeConfig: MazeConfig) => {
+const createMazeButton = (
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  mazeConfig: MazeConfig
+) => {
   const buttonStyle: Phaser.Types.GameObjects.Text.TextStyle = {
     fontSize: '24px',
     color: '#fff',
@@ -50,6 +62,6 @@ const createMazeButton = (scene: Phaser.Scene, x: number, y: number, mazeConfig:
   });
 
   return button;
-}
+};
 
-export {createButton, createMazeButton};
+export { createButton, createMazeButton };
