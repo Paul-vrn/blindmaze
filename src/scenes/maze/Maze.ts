@@ -97,7 +97,6 @@ export default class Maze extends Phaser.Scene {
         wallView
       );
     }
-    console.log(this.physics.world.colliders);
     this.gridView.outlineViews.forEach((outlineView: any) => {
       this.physics.add.collider(this.lightPoint, outlineView);
     });
@@ -105,6 +104,31 @@ export default class Maze extends Phaser.Scene {
     this._reset();
     this.generator.generate();
     this.countDown();
+
+    const buttonStyle: Phaser.Types.GameObjects.Text.TextStyle = {
+      fontSize: '24px',
+      color: '#fff',
+      backgroundColor: '#333',
+      padding: {
+        x: 16,
+        y: 8,
+      },
+    };
+    const button = this.add.text(
+      this.scale.width * 0.8,
+      this.scale.height * 0.9,
+      'Back',
+      buttonStyle
+    );
+    button.setOrigin(0.5);
+    button.setInteractive({ useHandCursor: true });
+    button.on('pointerdown', () => {
+      stopTimer();
+      this.scheduler.removeAllEvents();
+      resetTimer(this);
+      this.scene.run(this.worldTitle);
+      this.scene.remove(this.title);
+    });
     // END OF CREATE
   }
 
@@ -199,7 +223,7 @@ export default class Maze extends Phaser.Scene {
 
   private endGame() {
     // Stop any active game mechanics
-    stopTimer(this);
+    stopTimer();
     this.scheduler.removeAllEvents();
     this.lightPoint.body.velocity.x = 0;
     this.lightPoint.body.velocity.y = 0;

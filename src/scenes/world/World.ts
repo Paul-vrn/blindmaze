@@ -80,6 +80,17 @@ export class World extends Phaser.Scene {
         fontSize: '16px',
         color: '#fff',
       });
+      scores
+        .filter((score) => score.mazeName === mazeConfig.title)
+        .sort((a, b) => b.score - a.score)
+        .forEach((score, index) => {
+          this.add.text(
+            x - 95,
+            y + 50 + index * 20,
+            `${score.name}: ${score.score}`,
+            { fontSize: '16px', color: '#fff' }
+          );
+        });
     }
     for (let i = 0; i < this.hardMaze; i++) {
       const mazeConfig = GenerateMazeConfig(
@@ -96,6 +107,17 @@ export class World extends Phaser.Scene {
         fontSize: '16px',
         color: '#fff',
       });
+      scores
+        .filter((score) => score.mazeName === mazeConfig.title)
+        .sort((a, b) => b.score - a.score)
+        .forEach((score, index) => {
+          this.add.text(
+            x - 95,
+            y + 50 + index * 20,
+            `${score.name}: ${score.score}`,
+            { fontSize: '16px', color: '#fff' }
+          );
+        });
     }
 
     // return back to main menu

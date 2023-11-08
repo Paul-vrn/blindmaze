@@ -41,7 +41,7 @@ const createTimer = (maze: Maze) => {
   });
 };
 
-const stopTimer = (maze: Maze) => {
+const stopTimer = () => {
   if (timerEvent) {
     timerEvent.remove();
     timerEvent = null;
@@ -50,6 +50,8 @@ const stopTimer = (maze: Maze) => {
 
 const resetTimer = (maze: Maze) => {
   maze.elapsedTime = 0;
-  maze.timerText.destroy();
+  if (timerEvent) {
+    maze.timerText.destroy();
+  }
 };
 export { createTimer, formatTime, resetTimer, stopTimer };

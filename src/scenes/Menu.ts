@@ -38,7 +38,10 @@ export default class Menu extends Phaser.Scene {
       50
     );
     this.add.existing(textEntry);
-    textEntry.setText(getUsername());
+    const username = getUsername();
+    if (username !== 'Anonymous') {
+      textEntry.setText(getUsername());
+    }
     textEntry.on('textchange', function (inputText: any) {
       setUsername(inputText.text);
     });
