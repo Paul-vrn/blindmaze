@@ -33,7 +33,7 @@ export default class Maze extends Phaser.Scene {
   elapsedTime: number = 0;
   gridView!: GridView;
   grid!: Grid;
-  startPosition!: ICoordinates;
+  restartPosition!: ICoordinates;
   lightPointTarget!: ICoordinates | null;
   lightPoint!: Phaser.GameObjects.Arc;
   points: Phaser.GameObjects.Arc[];
@@ -88,7 +88,7 @@ export default class Maze extends Phaser.Scene {
     this.createPoints();
 
     // Placing light point and points
-    this.startPosition = this.placePointInRandomCell(this.lightPoint)!;
+    this.restartPosition = this.placePointInRandomCell(this.lightPoint)!;
     this.points.forEach((point: Phaser.GameObjects.Arc) =>
       this.placePointInRandomCell(point)
     );
@@ -206,12 +206,26 @@ export default class Maze extends Phaser.Scene {
     this.buttonBonus.setInteractive({ useHandCursor: true });
     createTimer(this);
     this.time.addEvent({
-      //delay: 20000, // 20 seconds
-      delay: 20000,
+      //delay: 15000, // 15 seconds
+      delay: 15000,
       callback: this.revealPointsBriefly,
       callbackScope: this,
       loop: true,
     });
+
+    this.time.addEvent({
+      delay: 7000,
+      callback: this.updateRestartPosition,
+      callbackScope: this,
+      loop: true,
+    });
+  }
+
+  updateRestartPosition() {
+    if (this.lightPoint) {
+      this.restartPosition.x = this.lightPoint.x;
+      this.restartPosition.y = this.lightPoint.y;
+    }
   }
   createLightPoint() {
     this.lightPoint = this.add.circle(0, 0, 5, 0xffd700); // Crée un point lumineux jaune
@@ -259,22 +273,27 @@ export default class Maze extends Phaser.Scene {
     this.gridView.container.clearMask();
     this.lightPoint.clearMask();
     this.points.forEach((point: Phaser.GameObjects.Arc) => point.clearMask());
+    const score = calculateScore(
+      this.elapsedTime,
+      this.rows,
+      this.cols,
+      this.nbPoints,
+      this.nbEnemies,
+      this.nbEnemyOrDeadWallTouched
+    );
+    const endText = `Game Finished!\nTime: ${formatTime(
+      this.elapsedTime
+    )}\nScore: ${score}`;
+
     if (this.topText) {
-      this.topText.setText(
-        `Game Finished!\nTime: ${formatTime(this.elapsedTime)}`
-      );
+      this.topText.setText(endText);
     } else {
       this.topText = this.add
-        .text(
-          config.scale.width / 2,
-          50,
-          `Game Finished!\nTime: ${formatTime(this.elapsedTime)}`,
-          {
-            align: 'center',
-            fontSize: '40px',
-            color: '#000',
-          }
-        )
+        .text(config.scale.width / 2, 70, endText, {
+          align: 'center',
+          fontSize: '40px',
+          color: '#000',
+        })
         .setOrigin(0.5, 0.5); // Align text to the top left of the game grid
     }
     addLevelToWorld(this.worldTitle, this.title);
@@ -282,14 +301,7 @@ export default class Maze extends Phaser.Scene {
       addScore(this.worldTitle, {
         name: getUsername(),
         mazeName: this.title,
-        score: calculateScore(
-          this.elapsedTime,
-          this.rows,
-          this.cols,
-          this.nbPoints,
-          this.nbEnemies,
-          this.nbEnemyOrDeadWallTouched
-        ),
+        score,
       });
       resetTimer(this);
       //this.scene.start('MainMenuScene');  // replace 'MainScene' with the key of your main scene
@@ -396,8 +408,8 @@ export default class Maze extends Phaser.Scene {
           this.wallColliders[key].destroy();
           this.physics.add.collider(this.lightPoint, wallView, () => {
             this.lightPoint.setPosition(
-              this.startPosition.x,
-              this.startPosition.y
+              this.restartPosition.x,
+              this.restartPosition.y
             );
             this.nbEnemyOrDeadWallTouched++;
           });
@@ -430,7 +442,10 @@ export default class Maze extends Phaser.Scene {
       });
       // overlap insdead of collider because we don't want the lightpoint to change the direction of the enemy
       this.physics.add.overlap(this.lightPoint, enemy, () => {
-        this.lightPoint.setPosition(this.startPosition.x, this.startPosition.y);
+        this.lightPoint.setPosition(
+          this.restartPosition.x,
+          this.restartPosition.y
+        );
         this.nbEnemyOrDeadWallTouched++;
       });
     }

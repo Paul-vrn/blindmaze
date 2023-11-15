@@ -32,10 +32,12 @@ const addScore = (worldName: string, score: Score): void => {
   const index = scores.findIndex(
     (s) => s.mazeName === score.mazeName && s.name === score.name
   );
-  if (index >= 0) {
-    scores[index] = score;
-  } else {
-    scores.push(score);
+  if (scores[index].score < score.score) {
+    if (index >= 0) {
+      scores[index] = score;
+    } else {
+      scores.push(score);
+    }
   }
   setScores(worldName, scores);
 };
