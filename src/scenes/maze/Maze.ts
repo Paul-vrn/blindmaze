@@ -6,7 +6,7 @@ import { Cell } from '../../models/cell';
 import { MazeConfig } from '../../models/gameConfig';
 import { Grid } from '../../models/grid';
 import calculateScore from '../../models/score';
-import { addLevelToWorld, addScore } from '../../models/store';
+import { addLevelToWorld, addScore, getHintSpace } from '../../models/store';
 import { getUsername } from '../../models/username';
 import calculateSpeed from '../../utils/calculateSpeed';
 import {
@@ -31,6 +31,7 @@ export default class Maze extends Phaser.Scene {
   bonusCount: number = 3;
   scheduler!: any;
   elapsedTime: number = 0;
+  hintSpace: boolean = false;
   gridView!: GridView;
   grid!: Grid;
   restartPosition!: ICoordinates;
@@ -45,6 +46,7 @@ export default class Maze extends Phaser.Scene {
   buttonBonus!: Phaser.GameObjects.Text;
   buttonBack!: Phaser.GameObjects.Text;
   wallColliders: Record<string, Phaser.Physics.Arcade.Collider>;
+  spaceKey!: Phaser.Input.Keyboard.Key;
 
   constructor(config: MazeConfig) {
     super(config.title);
@@ -61,6 +63,7 @@ export default class Maze extends Phaser.Scene {
     this.destroyedWallCount = 0;
     this.nbEnemyOrDeadWallTouched = 0;
     this.wallColliders = {};
+    this.hintSpace = getHintSpace();
   }
   create() {
     this.currentNbPoints = this.nbPoints;
@@ -128,10 +131,7 @@ export default class Maze extends Phaser.Scene {
     this.buttonBonus.setOrigin(0.5);
     this.buttonBonus.setAlpha(0.5);
     this.buttonBonus.on('pointerdown', () => {
-      this.buttonBonus.removeInteractive();
-      this.buttonBonus.setAlpha(0.5);
       this.revealMazeBriefly();
-      this.buttonBonus.setText(`Bonus: ${this.bonusCount} left`);
     });
     this.buttonBack = this.add.text(
       this.scale.width * 0.91,
@@ -148,6 +148,7 @@ export default class Maze extends Phaser.Scene {
       this.scene.run(this.worldTitle);
       this.scene.remove(this.title);
     });
+
     // END OF CREATE
   }
 
@@ -204,29 +205,20 @@ export default class Maze extends Phaser.Scene {
     this.buttonBack.setInteractive({ useHandCursor: true });
     this.buttonBonus.setAlpha(1);
     this.buttonBonus.setInteractive({ useHandCursor: true });
+
+    this.spaceKey = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.SPACE
+    );
+    this.spaceKey.on('down', () => {
+      this.revealMazeBriefly();
+    });
+
     createTimer(this);
-    this.time.addEvent({
-      //delay: 15000, // 15 seconds
-      delay: 15000,
-      callback: this.revealPointsBriefly,
-      callbackScope: this,
-      loop: true,
-    });
 
-    this.time.addEvent({
-      delay: 7000,
-      callback: this.updateRestartPosition,
-      callbackScope: this,
-      loop: true,
-    });
+    this.revealPointsBriefly(15);
+    this.updateRestartPosition(10);
   }
 
-  updateRestartPosition() {
-    if (this.lightPoint) {
-      this.restartPosition.x = this.lightPoint.x;
-      this.restartPosition.y = this.lightPoint.y;
-    }
-  }
   createLightPoint() {
     this.lightPoint = this.add.circle(0, 0, 5, 0xffd700); // Crée un point lumineux jaune
     this.lightPoint.setVisible(false); // Cache le point jusqu'à ce qu'il soit positionné
@@ -450,32 +442,60 @@ export default class Maze extends Phaser.Scene {
       });
     }
   }
-  revealPointsBriefly() {
-    const circles = this.points
-      .filter((point) => point.visible)
-      .map((point: Phaser.GameObjects.Arc) =>
-        this.add
-          .circle(
-            point.x + this.gridView.startX,
-            point.y + this.gridView.startY,
-            5,
-            0x87f090
-          )
-          .setAlpha(0)
-      );
 
-    this.tweens.add({
-      targets: circles,
-      alpha: 1,
-      duration: 1000,
-      ease: 'Sine.easeInOut',
-      repeat: 0,
-      yoyo: true,
+  updateRestartPosition(time: number) {
+    this.time.addEvent({
+      delay: 1000,
+      callback: () => {
+        if (this.lightPoint) {
+          const x = this.lightPoint.x;
+          const y = this.lightPoint.y;
+          setTimeout(() => {
+            this.restartPosition.x = x;
+            this.restartPosition.y = y;
+          }, time * 1000);
+        }
+      },
+      callbackScope: this,
+      loop: true,
+    });
+  }
+
+  revealPointsBriefly(time: number) {
+    this.time.addEvent({
+      delay: time * 1000,
+      callback: () => {
+        const circles = this.points
+          .filter((point) => point.visible)
+          .map((point: Phaser.GameObjects.Arc) =>
+            this.add
+              .circle(
+                point.x + this.gridView.startX,
+                point.y + this.gridView.startY,
+                5,
+                0x87f090
+              )
+              .setAlpha(0)
+          );
+
+        this.tweens.add({
+          targets: circles,
+          alpha: 1,
+          duration: 1000,
+          ease: 'Sine.easeInOut',
+          repeat: 0,
+          yoyo: true,
+        });
+      },
+      callbackScope: this,
+      loop: true,
     });
   }
 
   revealMazeBriefly() {
     console.log('revealMazeBriefly');
+    this.buttonBonus.removeInteractive();
+    this.buttonBonus.setAlpha(0.5);
     if (this.bonusCount < 1) {
       return;
     }
@@ -495,6 +515,7 @@ export default class Maze extends Phaser.Scene {
       }
     });
     this.bonusCount--;
+    this.buttonBonus.setText(`Bonus: ${this.bonusCount} left`);
   }
 
   moveLightToPoint(pointer: Phaser.Input.InputPlugin) {

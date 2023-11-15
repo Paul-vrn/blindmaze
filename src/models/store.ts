@@ -43,17 +43,17 @@ const addScore = (worldName: string, score: Score): void => {
 };
 
 // Créer une fonction pour sérialiser un Worlds
-function serializeWorlds(map: Worlds): string {
+const serializeWorlds = (map: Worlds): string => {
   const objectToSerialize: { [key: string]: string[] } = {};
   Object.keys(map).forEach((key) => {
     // Convertir chaque Set en Array
     objectToSerialize[key] = Array.from(map[key]);
   });
   return JSON.stringify(objectToSerialize);
-}
+};
 
 // Créer une fonction pour désérialiser une chaîne en Worlds
-function deserializeWorlds(serializedMap: string): Worlds {
+const deserializeWorlds = (serializedMap: string): Worlds => {
   const parsedObject: { [key: string]: string[] } = JSON.parse(serializedMap);
   const worlds: Worlds = {};
   Object.keys(parsedObject).forEach((key) => {
@@ -61,7 +61,7 @@ function deserializeWorlds(serializedMap: string): Worlds {
     worlds[key] = new Set(parsedObject[key]);
   });
   return worlds;
-}
+};
 
 const getWorlds = (): Worlds => {
   const worlds = localStorage.getItem('worlds');
@@ -80,11 +80,25 @@ const addLevelToWorld = (worldName: string, levelName: string): void => {
   localStorage.setItem('worlds', serializeWorlds(worlds));
 };
 
+const storeHintSpace = (hintSpace: boolean): void => {
+  localStorage.setItem('hintSpace', JSON.stringify(hintSpace));
+};
+
+const getHintSpace = (): boolean => {
+  const hintSpace = localStorage.getItem('hintSpace');
+  if (hintSpace) {
+    return JSON.parse(hintSpace);
+  }
+  return false;
+};
+
 export {
   addLevelToWorld,
   addScore,
+  getHintSpace,
   getScores,
   getScoresByMazeName,
   getWorlds,
   setScores,
+  storeHintSpace,
 };
