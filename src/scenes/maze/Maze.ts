@@ -6,7 +6,12 @@ import { Cell } from '../../models/cell';
 import { MazeConfig } from '../../models/gameConfig';
 import { Grid } from '../../models/grid';
 import calculateScore from '../../models/score';
-import { addLevelToWorld, addScore, getHintSpace } from '../../models/store';
+import {
+  addLevelToWorld,
+  addScore,
+  getHintSpace,
+  storeHintSpace,
+} from '../../models/store';
 import { getUsername } from '../../models/username';
 import calculateSpeed from '../../utils/calculateSpeed';
 import {
@@ -47,6 +52,7 @@ export default class Maze extends Phaser.Scene {
   buttonBack!: Phaser.GameObjects.Text;
   wallColliders: Record<string, Phaser.Physics.Arcade.Collider>;
   spaceKey!: Phaser.Input.Keyboard.Key;
+  hintContainer!: Phaser.GameObjects.Container;
 
   constructor(config: MazeConfig) {
     super(config.title);
@@ -148,6 +154,9 @@ export default class Maze extends Phaser.Scene {
       this.scene.run(this.worldTitle);
       this.scene.remove(this.title);
     });
+    if (this.hintSpace) {
+      this.createHintNote();
+    }
 
     // END OF CREATE
   }
@@ -211,6 +220,7 @@ export default class Maze extends Phaser.Scene {
     );
     this.spaceKey.on('down', () => {
       this.revealMazeBriefly();
+      this.removeHint();
     });
 
     createTimer(this);
@@ -218,7 +228,14 @@ export default class Maze extends Phaser.Scene {
     this.revealPointsBriefly(15);
     this.updateRestartPosition(10);
   }
-
+  removeHint() {
+    console.log('removeHint');
+    if (this.hintSpace) {
+      this.hintContainer.destroy();
+      this.hintSpace = false;
+      storeHintSpace(this.hintSpace);
+    }
+  }
   createLightPoint() {
     this.lightPoint = this.add.circle(0, 0, 5, 0xffd700); // Crée un point lumineux jaune
     this.lightPoint.setVisible(false); // Cache le point jusqu'à ce qu'il soit positionné
@@ -378,6 +395,34 @@ export default class Maze extends Phaser.Scene {
     }
 
     this.destroyedWallCount += 1;
+  }
+
+  createHintNote() {
+    const noteStyle: Phaser.Types.GameObjects.Text.TextStyle = {
+      fontSize: '16px',
+      color: '#000',
+      backgroundColor: '#fff',
+      padding: {
+        x: 10,
+        y: 5,
+      },
+    };
+
+    const hintNote = this.add.text(0, 0, 'Press SPACE !', noteStyle);
+    const gotItButton = this.add
+      .text(0, hintNote.height + 5, 'Got it', noteStyle)
+      .setInteractive();
+
+    this.hintContainer = this.add.container(
+      this.buttonBonus.x + 120,
+      this.buttonBonus.y - 30,
+      [hintNote, gotItButton]
+    );
+
+    gotItButton.on('pointerdown', () => {
+      this.removeHint();
+      storeHintSpace(false); // Assurez-vous que cette fonction existe et est correctement définie
+    });
   }
 
   createDeadWalls() {
