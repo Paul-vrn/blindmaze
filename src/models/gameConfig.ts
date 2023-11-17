@@ -15,6 +15,7 @@ export type MazeConfig = {
   rows: number;
   cols: number;
   nbPoints: number;
+  percentDeadWalls: number;
   nbEnemies: number;
   enableDeadWalls: boolean;
   enableEnemies: boolean;
@@ -30,11 +31,13 @@ const GenerateMazeConfig = (
   let rows: number;
   let cols: number;
   let nbPoints: number;
+  let percentDeadWalls: number;
   let nbEnemies: number;
   switch (difficulty) {
     case Difficulty.EASY:
       rows = Phaser.Math.RND.between(4, 6);
       cols = Phaser.Math.RND.between(6, 8);
+      percentDeadWalls = enableDeadWalls ? 0.3 : 0;
       nbPoints = Phaser.Math.RND.between(2, 5);
       nbEnemies = enableEnemies ? Phaser.Math.RND.between(2, 4) : 0;
       break;
@@ -42,12 +45,14 @@ const GenerateMazeConfig = (
       rows = Phaser.Math.RND.between(6, 8);
       cols = Phaser.Math.RND.between(8, 12);
       nbPoints = Phaser.Math.RND.between(5, 10);
+      percentDeadWalls = enableDeadWalls ? 0.35 : 0;
       nbEnemies = enableEnemies ? Phaser.Math.RND.between(4, 7) : 0;
       break;
     case Difficulty.HARD:
       rows = Phaser.Math.RND.between(8, 11);
       cols = Phaser.Math.RND.between(16, 16);
       nbPoints = Phaser.Math.RND.between(10, 17);
+      percentDeadWalls = enableDeadWalls ? 0.4 : 0;
       nbEnemies = enableEnemies ? Phaser.Math.RND.between(7, 10) : 0;
       break;
   }
@@ -58,6 +63,7 @@ const GenerateMazeConfig = (
     rows,
     cols,
     nbPoints,
+    percentDeadWalls,
     nbEnemies,
     enableDeadWalls,
     enableEnemies,
