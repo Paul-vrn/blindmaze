@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import InputText from 'phaser3-rex-plugins/plugins/inputtext.js';
 import config from '../config';
-import { getWorlds } from '../models/store';
+import { checkHintSpace, getWorlds } from '../models/store';
 import { getUsername, setUsername } from '../models/username';
 import { createButton } from '../utils/createButton';
 
@@ -11,19 +11,26 @@ export default class Menu extends Phaser.Scene {
   }
 
   create() {
-    const titleText = this.add.text(
+    checkHintSpace();
+    const titleText = this.add.text(config.scale.width / 2, 50, 'BlindMaze', {
+      fontSize: '32px',
+      color: '#fff',
+    });
+    titleText.setOrigin(0.5);
+
+    const subTitle = this.add.text(
       config.scale.width / 2,
-      50,
-      'Menu Principal',
+      75,
+      'Find the green dots!',
       {
-        fontSize: '32px',
+        fontSize: '16px',
         color: '#fff',
       }
     );
-    titleText.setOrigin(0.5);
+    subTitle.setOrigin(0.5);
 
     this.add
-      .text(config.scale.width * 0.5 - 150, 100, 'Nickname:', {
+      .text(config.scale.width * 0.5 - 150, 120, 'Nickname:', {
         color: 'white',
         fontSize: '20px',
       })
@@ -33,7 +40,7 @@ export default class Menu extends Phaser.Scene {
     const textEntry = new InputText(
       this,
       config.scale.width * 0.5,
-      100,
+      120,
       200,
       50
     );
