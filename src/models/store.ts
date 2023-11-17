@@ -32,12 +32,12 @@ const addScore = (worldName: string, score: Score): void => {
   const index = scores.findIndex(
     (s) => s.mazeName === score.mazeName && s.name === score.name
   );
-  if (scores[index].score < score.score) {
-    if (index >= 0) {
+  if (index >= 0) {
+    if (scores[index].score < score.score) {
       scores[index] = score;
-    } else {
-      scores.push(score);
     }
+  } else {
+    scores.push(score);
   }
   setScores(worldName, scores);
 };
@@ -92,6 +92,13 @@ const getHintSpace = (): boolean => {
   return false;
 };
 
+const checkHintSpace = () => {
+  const hintSpace = localStorage.getItem('hintSpace');
+  if (!hintSpace) {
+    localStorage.setItem('hintSpace', JSON.stringify(true));
+  }
+};
+
 export {
   addLevelToWorld,
   addScore,
@@ -101,4 +108,5 @@ export {
   getWorlds,
   setScores,
   storeHintSpace,
+  checkHintSpace,
 };
