@@ -1,5 +1,5 @@
 import 'phaser';
-import { GridView } from '../entities/grid-view';
+import { GridView } from '../models/grid-view';
 import { Cell } from '../models/cell';
 import { Grid } from '../models/grid';
 import Maze from '../scenes/maze/Maze';

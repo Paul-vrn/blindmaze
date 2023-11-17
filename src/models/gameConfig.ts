@@ -21,6 +21,16 @@ export type MazeConfig = {
   enableEnemies: boolean;
 };
 
+/**
+ * Generate a maze config with random values for rows, cols, nbPoints, percentDeadWalls
+ * and nbEnemies depending on the difficulty
+ * @param title title of the maze
+ * @param worldTitle title of the world
+ * @param difficulty difficulty of the maze
+ * @param enableDeadWalls true if dead walls are enabled
+ * @param enableEnemies true if enemies are enabled
+ * @returns a maze config
+ */
 const GenerateMazeConfig = (
   title: string,
   worldTitle: string,

@@ -3,8 +3,8 @@ const maxSpeed = 200;
 
 /**
  * Calculate the speed of the light point based on the distance to the target
- * @param distance
- * @returns
+ * @param distance distance between the light point and the cursor
+ * @returns speed of the light point
  */
 const calculateSpeed = (distance: number): number => {
   distance = Math.trunc(distance);

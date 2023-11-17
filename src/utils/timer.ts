@@ -1,6 +1,11 @@
 import config from '../config';
 import Maze from '../scenes/maze/Maze';
 
+/**
+ * Format time
+ * @param milliseconds
+ * @returns formatted time
+ */
 const formatTime = (milliseconds: number): string => {
   const minutes = Math.floor(milliseconds / 60000);
   const seconds = Math.floor((milliseconds % 60000) / 1000);
@@ -12,6 +17,7 @@ const formatTime = (milliseconds: number): string => {
 
   return `${formattedMinutes}:${formattedSeconds}:${formattedMillis}`;
 };
+
 let timerEvent: Phaser.Time.TimerEvent | null = null;
 /**
  * Create a timer
@@ -54,4 +60,5 @@ const resetTimer = (maze: Maze) => {
     maze.timerText.destroy();
   }
 };
+
 export { createTimer, formatTime, resetTimer, stopTimer };

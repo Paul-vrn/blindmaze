@@ -1,6 +1,6 @@
 import 'phaser';
 import config from '../../config';
-import { GridView, ICoordinates } from '../../entities/grid-view';
+import { GridView, ICoordinates } from '../../models/grid-view';
 import { RecursiveBacktracker } from '../../generators/recursive-backtracker';
 import { Cell } from '../../models/cell';
 import { MazeConfig } from '../../models/gameConfig';
@@ -104,7 +104,7 @@ export default class Maze extends Phaser.Scene {
       this.placePointInRandomCell(point)
     );
 
-    // COLLISION
+    // Defining collisions
     for (const key in this.gridView.wallViews) {
       const wallView = this.gridView.wallViews[key];
       this.wallColliders[key] = this.physics.add.collider(
@@ -205,6 +205,9 @@ export default class Maze extends Phaser.Scene {
     });
   }
 
+  /**
+   * Start the game after the countdown
+   */
   startGame() {
     this.input.on('pointermove', this.moveLightToPoint, this);
     this.gridView.container.setMask(this.mask);
@@ -322,19 +325,26 @@ export default class Maze extends Phaser.Scene {
     });
   }
 
+  /**
+   * Update the game
+   * @param time
+   * @param delta
+   */
   update(time: number, delta: number): void {
     if (this.lightPointTarget) {
       const dx = this.lightPointTarget.x - this.lightPoint.x;
       const dy = this.lightPointTarget.y - this.lightPoint.y;
       const distanceToTarget = Math.sqrt(dx * dx + dy * dy);
 
+      // Stop the light point if it is close enough to the target
       if (distanceToTarget < 5) {
-        // Par exemple, si moins de 5 pixels de la cible
         this.lightPoint.body.velocity.x = 0;
         this.lightPoint.body.velocity.y = 0;
-        this.lightPointTarget = null; // Réinitialisez la cible
+        this.lightPointTarget = null;
       }
     }
+
+    // circle around the light point that reveals the maze
     this.graphics
       .clear()
       .fillStyle(0x000000)
@@ -352,6 +362,11 @@ export default class Maze extends Phaser.Scene {
     this.gridView.reset();
   }
 
+  /**
+   * Place the given point in a random cell of the grid
+   * @param point the point to place
+   * @returns the coordinates of the cell where the point is placed
+   */
   placePointInRandomCell(point: Phaser.GameObjects.Arc): ICoordinates | null {
     const randomRow = Phaser.Math.RND.between(0, this.gridView.grid.rows - 1);
     const randomCol = Phaser.Math.RND.between(0, this.gridView.grid.cols - 1);
@@ -367,6 +382,12 @@ export default class Maze extends Phaser.Scene {
     }
     return null;
   }
+
+  /**
+   * Schedule the destruction of the wall between the two given cells
+   * @param cell1
+   * @param cell2
+   */
   scheduleNextWallRemoval(cell1: Cell, cell2: Cell) {
     const TIME_STEP = (50 * (8 * 8)) / (this.rows * this.cols);
 
@@ -399,6 +420,9 @@ export default class Maze extends Phaser.Scene {
     this.destroyedWallCount += 1;
   }
 
+  /**
+   * Create the hint note for bonus button
+   */
   createHintNote() {
     const noteStyle: Phaser.Types.GameObjects.Text.TextStyle = {
       fontSize: '16px',
@@ -423,10 +447,13 @@ export default class Maze extends Phaser.Scene {
 
     gotItButton.on('pointerdown', () => {
       this.removeHint();
-      storeHintSpace(false); // Assurez-vous que cette fonction existe et est correctement définie
+      storeHintSpace(false);
     });
   }
 
+  /**
+   * Create dead walls and add collisions with walls and light point
+   */
   createDeadWalls() {
     const keys = Object.keys(this.gridView.wallViews);
     const remainingWalls = keys.filter(
@@ -455,6 +482,10 @@ export default class Maze extends Phaser.Scene {
         });
       });
   }
+
+  /**
+   * Create enemies and add collisions with walls and light point
+   */
   createEnemies() {
     for (let i = 0; i < this.nbEnemies; i++) {
       const enemy: any = this.add.circle(0, 0, 3, 0xff0000);
@@ -490,6 +521,10 @@ export default class Maze extends Phaser.Scene {
     }
   }
 
+  /**
+   * Update the restart position of the light point every second
+   * @param time time in seconds
+   */
   updateRestartPosition(time: number) {
     this.time.addEvent({
       delay: 1000,
@@ -508,6 +543,10 @@ export default class Maze extends Phaser.Scene {
     });
   }
 
+  /**
+   * Reveal the points during the given time
+   * @param time time in seconds
+   */
   revealPointsBriefly(time: number) {
     this.time.addEvent({
       delay: time * 1000,
@@ -539,8 +578,10 @@ export default class Maze extends Phaser.Scene {
     });
   }
 
+  /**
+   * Reavel the maze during 3s when clicking on the bonus button or pressing space
+   */
   revealMazeBriefly() {
-    console.log('revealMazeBriefly');
     this.buttonBonus.removeInteractive();
     this.buttonBonus.setAlpha(0.5);
     if (this.bonusCount < 1) {
@@ -565,6 +606,10 @@ export default class Maze extends Phaser.Scene {
     this.buttonBonus.setText(`Bonus: ${this.bonusCount} left`);
   }
 
+  /**
+   * Move the light point to the cursor position with a speed depending on the distance
+   * @param {Phaser.Input.InputPlugin} pointer
+   */
   moveLightToPoint(pointer: Phaser.Input.InputPlugin) {
     const targetX =
       Phaser.Math.Clamp(

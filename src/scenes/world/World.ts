@@ -29,7 +29,7 @@ export class World extends Phaser.Scene {
   }
 
   create() {
-    // Création du titre du monde
+    // title creation
     const titleText = this.add.text(this.scale.width / 2, 50, this.worldTitle, {
       fontSize: '32px',
       color: '#fff',

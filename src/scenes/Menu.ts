@@ -36,7 +36,7 @@ export default class Menu extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    // Ajout de textEntry pour la saisie du pseudo
+    // Input text for username
     const textEntry = new InputText(
       this,
       config.scale.width * 0.5,
