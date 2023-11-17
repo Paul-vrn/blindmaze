@@ -11,20 +11,13 @@ const calculateScore = (
   const sizeFactor = 5; // Bonus based on the size of the maze
   const pointFactor = 10; // Points for each collected point
   const enemyFactor = 5; // Points for each enemy avoided
-  const touchEnemyFactor = 10; // Points for each enemy touched
-  // Calculate a size bonus (the larger the maze, the higher the score)
+  const touchEnemyOrDeadWallFactor = 10; // Points for each enemy touched
+
   const sizeBonus = (rows + cols) * sizeFactor;
-
-  // Calculate a bonus based on the number of points
   const pointBonus = nbPoints * pointFactor;
-
-  // Calculate a bonus based on the number of enemies
   const enemyBonus = nbEnemies * enemyFactor;
+  const touchEnemyBonus = nbTouchEnemyOrDeadWall * touchEnemyOrDeadWallFactor;
 
-  // Calculate a bonus based on the number of enemies or deadwalls touched
-  const touchEnemyBonus = nbTouchEnemyOrDeadWall * touchEnemyFactor;
-
-  // Calculate a time penalty (less time gives a higher score)
   const timePenalty = Math.max(0, time / 1000 / timeFactor);
 
   const score =

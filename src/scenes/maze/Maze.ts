@@ -30,6 +30,7 @@ export default class Maze extends Phaser.Scene {
   enableDeadWalls: boolean;
   enableEnemies: boolean;
   nbEnemies: number;
+  percentDeadWalls: number;
   nbEnemyOrDeadWallTouched: number;
   destroyedWallCount: number;
   currentNbPoints: number;
@@ -62,6 +63,7 @@ export default class Maze extends Phaser.Scene {
     this.cols = config.cols;
     this.enableDeadWalls = config.enableDeadWalls;
     this.enableEnemies = config.enableEnemies;
+    this.percentDeadWalls = config.percentDeadWalls;
     this.nbPoints = config.nbPoints;
     this.nbEnemies = config.nbEnemies;
     this.currentNbPoints = config.nbPoints;
@@ -226,7 +228,7 @@ export default class Maze extends Phaser.Scene {
     createTimer(this);
 
     this.revealPointsBriefly(15);
-    this.updateRestartPosition(10);
+    this.updateRestartPosition(6);
   }
   removeHint() {
     console.log('removeHint');
@@ -431,7 +433,7 @@ export default class Maze extends Phaser.Scene {
       (key) => this.gridView.wallViews[key].body.enable
     );
     Phaser.Utils.Array.Shuffle(remainingWalls)
-      .slice(0, Math.floor(remainingWalls.length * 0.3))
+      .slice(0, Math.floor(remainingWalls.length * this.percentDeadWalls))
       .forEach((key) => {
         const wallView = this.gridView.wallViews[key];
         this.scheduler.delayedCall(500, () => {
@@ -582,7 +584,7 @@ export default class Maze extends Phaser.Scene {
 
     const speed = calculateSpeed(distance);
 
-    this.lightPointTarget = { x: targetX, y: targetY }; // Stockez la cible
+    this.lightPointTarget = { x: targetX, y: targetY };
 
     this.physics.moveTo(this.lightPoint, targetX, targetY, speed);
   }

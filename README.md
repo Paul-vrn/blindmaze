@@ -2,7 +2,7 @@
   <br>
   <a href="https://github.com/geocine/phaser3-rollup-typescript#readme"><img src="https://i.imgur.com/6lcIxDs.png" alt="header" width="600"/></a>
   <br>
-  LiU Game Jam 2020
+  TDDD23 - Design and Programming of Computer Games
   <br>
 </h1>
 
@@ -26,7 +26,7 @@ In **Blindmaze**, you are a point of light in an ever-changing world of darkness
 
 ## How to Play
 
-Move your point of light using your mouse or touch input. As you move, the nearby areas will briefly reveal themselves. Plan your route and avoid obstacles to reach the orbs. Collect all orbs to complete the maze and unlock the next world.
+Move your point of light using your mouse or touch input. As you move, the nearby areas will briefly reveal themselves. Plan your route and avoid obstacles to reach the green orbs. Collect all orbs to complete the maze and unlock the next world.
 
 ## Getting Started
 
